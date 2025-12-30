@@ -8,47 +8,36 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@400;500;600;800&display=swap" rel="stylesheet">
     <link rel="manifest" href="../pwa/manifest.json">
     <style>
-        /* === ZÁKLADNÍ NASTAVENÍ (LIGHT MODE) === */
+        /* === ZÁKLADNÍ NASTAVENÍ === */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
             margin: 0; padding: 0; height: 100%; width: 100%; overflow-x: hidden; 
             font-family: 'Inter', sans-serif; 
-            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%); /* Pastel Blue */
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
             color: #1e293b;
         }
-        .animated-bg { display: none; }
         
-        #nav-header {
-            position: fixed; top: 0; left: 0; width: 100%; height: 70px;
-            z-index: 9999; display: flex; align-items: center; padding: 0 24px;
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255,255,255,0.3);
-        }
-        #back-btn {
-            pointer-events: auto; cursor: pointer;
-            width: 44px; height: 44px; border-radius: 50%;
-            background: #ffffff; border: 1px solid #e2e8f0;
-            display: flex; align-items: center; justify-content: center;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            color: #475569; font-size: 1.2rem;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
-        #back-btn:hover { background: #f0f9ff; transform: translateX(-3px); }
-        #back-btn:active { transform: scale(0.92) translateX(-3px); }
         .screen-content {
-            padding: 24px; padding-top: 90px; min-height: 100vh;
+            padding: 24px; padding-top: 40px; padding-bottom: 90px; min-height: 100vh;
             animation: fadeInPage 0.5s ease-out;
         }
         @keyframes fadeInPage { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
-        /* === GYM APP STYLY (LIGHT) === */
+        /* === GYM APP STYLY === */
         .gym-cont { max-width: 640px; margin: 0 auto; padding-bottom: 40px; }
+        
+        .header-row { display: flex; justify-content: center; align-items: center; gap: 12px; margin-bottom: 8px; position: relative; }
         .gym-h1 { 
             font-size: 2.75rem; text-align: center; font-weight: 900; 
-            margin-bottom: 8px; letter-spacing: -1px;
-            color: #0f172a;
+            margin: 0; letter-spacing: -1px; color: #0f172a; line-height: 1;
         }
+        .edit-toggle {
+            background: none; border: none; cursor: pointer; color: #64748b;
+            padding: 8px; border-radius: 50%; transition: all 0.2s;
+        }
+        .edit-toggle:hover { background: rgba(0,0,0,0.05); color: #3b82f6; }
+        .edit-toggle.active { color: #3b82f6; background: #e0f2fe; }
+
         .gym-sub { 
             text-align: center; color: #475569; font-size: 1rem; 
             margin-bottom: 32px; font-weight: 500;
@@ -64,187 +53,181 @@
             width: 0%; transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .gym-cat { 
-            background: #ffffff; border-radius: 24px; /* Solid White */
-            padding: 24px; margin-bottom: 24px; 
-            border: none;
+            background: #ffffff; border-radius: 24px; 
+            padding: 24px; margin-bottom: 24px; border: none;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            position: relative;
         }
         
-        /* Barvy pro kategorie (podle pořadí) */
-        .gym-cat:nth-of-type(1) { border-top: 5px solid #0284c7; } /* Záda - Modrá */
-        .gym-cat:nth-of-type(1) h2 { color: #0284c7; }
-        
-        .gym-cat:nth-of-type(2) { border-top: 5px solid #7c3aed; } /* Ruce - Fialová */
-        .gym-cat:nth-of-type(2) h2 { color: #7c3aed; }
-        
-        .gym-cat:nth-of-type(3) { border-top: 5px solid #059669; } /* Nohy - Zelená */
-        .gym-cat:nth-of-type(3) h2 { color: #059669; }
+        /* Dynamic Category Colors */
+        .gym-cat { border-top: 5px solid #cbd5e1; }
+        .gym-cat:nth-of-type(3n+1) { border-top-color: #0284c7; }
+        .gym-cat:nth-of-type(3n+1) h2 { color: #0284c7; }
+        .gym-cat:nth-of-type(3n+2) { border-top-color: #7c3aed; }
+        .gym-cat:nth-of-type(3n+2) h2 { color: #7c3aed; }
+        .gym-cat:nth-of-type(3n+3) { border-top-color: #059669; }
+        .gym-cat:nth-of-type(3n+3) h2 { color: #059669; }
 
         .gym-item {
             display: flex; align-items: center; padding: 18px; margin-bottom: 12px;
             background: #f8fafc; border-radius: 16px; cursor: pointer; 
             transition: all 0.2s; border: 1px solid #e2e8f0;
+            position: relative;
         }
-        .gym-item:hover { background: #f0f9ff; transform: translateX(2px); }
-        .gym-item.checked { 
-            background: #f0fdf4; 
-            border-color: #86efac;
-        }
+        .gym-item.checked { background: #f0fdf4; border-color: #86efac; }
         .gym-item.checked span { text-decoration: line-through; color: #94a3b8; }
-        
         .gym-box { 
-            width: 26px; height: 26px; 
-            border: 2px solid #cbd5e1; border-radius: 8px; 
-            background: #ffffff;
-            margin-right: 14px; position: relative;
-            transition: all 0.3s;
+            width: 26px; height: 26px; border: 2px solid #cbd5e1; border-radius: 8px; 
+            background: #ffffff; margin-right: 14px; position: relative; transition: all 0.3s;
+            flex-shrink: 0;
         }
-        .gym-item.checked .gym-box { 
-            background: #22c55e;
-            border-color: #22c55e; transform: rotate(360deg);
-        }
+        .gym-item.checked .gym-box { background: #22c55e; border-color: #22c55e; transform: rotate(360deg); }
         .gym-item.checked .gym-box::after { 
-            content: '✓'; color: white; position: absolute; 
-            top: 50%; left: 50%; transform: translate(-50%,-50%); 
-            font-size: 16px; font-weight: bold;
+            content: '✓'; color: white; position: absolute; top: 50%; left: 50%; 
+            transform: translate(-50%,-50%); font-size: 16px; font-weight: bold;
         }
-        .particle { 
-            position: fixed; pointer-events: none; 
-            font-size: 24px; z-index: 9999; 
+        
+        /* Edit Mode Styles */
+        .edit-controls { display: flex; gap: 8px; margin-left: auto; }
+        .icon-btn { 
+            padding: 6px; border-radius: 6px; cursor: pointer; color: #64748b; 
+            display: flex; align-items: center; justify-content: center;
         }
-        @keyframes particle-burst { 
-            to { 
-                transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg); 
-                opacity: 0; 
-            } 
+        .icon-btn:hover { background: rgba(0,0,0,0.05); }
+        .del-btn { color: #ef4444; }
+        .del-btn:hover { background: #fee2e2; }
+        .add-btn { 
+            width: 100%; text-align: center; padding: 12px; 
+            border: 2px dashed #cbd5e1; border-radius: 12px;
+            color: #64748b; font-weight: 600; cursor: pointer; margin-top: 8px;
         }
-        .reset-box {
-            text-align: center; margin-top: 32px; 
-            background: rgba(255,255,255,0.4); color: #475569;
-            padding: 16px; border-radius: 16px;
-            backdrop-filter: blur(5px);
+        .add-btn:hover { border-color: #94a3b8; color: #475569; background: #f8fafc; }
+        .cat-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+
+        /* Particle & Reset */
+        .particle { position: fixed; pointer-events: none; font-size: 24px; z-index: 9999; }
+        @keyframes particle-burst { to { transform: translate(var(--tx), var(--ty)) scale(0) rotate(360deg); opacity: 0; } }
+        
+        .google-btn {
+            display: inline-flex; align-items: center; justify-content: center;
+            background: white; color: #444; border: 1px solid #ddd;
+            padding: 10px 16px; border-radius: 8px; font-weight: 600; font-size: 0.9rem;
+            cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin-bottom: 16px; width: 100%;
         }
-        .reset-box span:first-child { font-size: 0.875rem; display: block; margin-bottom: 4px; color: #475569; }
-        .reset-box span:last-child { font-weight: 700; font-size: 1.125rem; color: #1e293b; }
+        .user-status { font-size: 0.8rem; color: #64748b; margin-bottom: 12px; text-align: center; }
+
+        /* === STYLY PRO HISTORII A GRAFY === */
+        .history-card {
+            background: white; border-radius: 16px; padding: 20px; margin-bottom: 12px;
+            border: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center;
+        }
+        .history-date { font-weight: 700; color: #334155; font-size: 0.95rem; }
+        .history-stats { text-align: right; }
+        .history-perc { font-weight: 800; color: #3b82f6; font-size: 1.1rem; }
+        .history-count { color: #94a3b8; font-size: 0.8rem; font-weight: 600; }
+        
+        .chart-box {
+            background: white; border-radius: 24px; padding: 24px; margin-bottom: 24px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08); overflow: hidden;
+        }
+        .chart-title { font-weight: 700; color: #1e293b; margin-bottom: 16px; font-size: 1.1rem; }
+        svg { width: 100%; height: auto; }
+        .bar-rect { fill: #3b82f6; rx: 4; transition: height 0.5s ease; }
+        .chart-line { fill: none; stroke: #8b5cf6; stroke-width: 3; stroke-linecap: round; }
+        .chart-dot { fill: white; stroke: #8b5cf6; stroke-width: 2; }
+        .chart-label { font-size: 10px; fill: #94a3b8; text-anchor: middle; }
+
+        /* === SPODNÍ NAVIGACE === */
+        #bottom-nav {
+            position: fixed; bottom: 0; left: 0; width: 100%;
+            height: 70px; background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(12px); border-top: 1px solid rgba(255,255,255,0.3);
+            display: flex; justify-content: space-around; align-items: center;
+            z-index: 10000; padding-bottom: env(safe-area-inset-bottom);
+        }
+        .nav-item {
+            display: flex; flex-direction: column; align-items: center;
+            color: #94a3b8; font-size: 0.75rem; font-weight: 600;
+            cursor: pointer; transition: color 0.2s; width: 33.33%;
+        }
+        .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; stroke-width: 2.5; }
+        .nav-item.active { color: #3b82f6; }
     </style>
 </head>
 <body>
-    <div class="animated-bg"></div>
-
-    <header id="nav-header" style="display: flex;">
-        <a href="../index.html" id="back-btn">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-        </a>
-    </header>
-
-    <div class="screen-content active">
-        <div class="gym-cont">
-            <h1 class="gym-h1">🏋️ Můj Plán</h1>
+    <div class="screen-content">
+        <!-- ZÁLOŽKA PLÁN -->
+        <div id="view-plan" class="gym-cont">
+            <div class="header-row">
+                <h1 class="gym-h1">Můj Plán</h1>
+                <button class="edit-toggle" id="edit-btn" onclick="toggleEditMode()" title="Upravit plán">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </button>
+            </div>
             <div class="gym-sub">Tvůj týdenní tréninkový program</div>
             
             <div class="gym-prog"><div id="gym-bar" class="gym-fill"></div></div>
             <div id="gym-text" style="text-align: center; font-size: 13px; margin-bottom: 24px; font-weight: 600;">0 / 0</div>
 
             <div id="gym-list"></div>
+            <div id="edit-controls-main" style="display:none; text-align:center; margin-top:16px;">
+                <div class="add-btn" onclick="addCategory()" style="background: white; border: 2px dashed #94a3b8; color: #1e293b;">+ Přidat novou kategorii</div>
+            </div>
             
-            <div class="reset-box">
-                <span>Resetuje se v pondělí</span>
-                <span id="gym-reset"></span>
+            <div style="text-align: center; margin-top: 32px; color: #64748b; font-size: 0.9rem;">
+                Týden: <span id="current-week-date" style="font-weight: 700; color: #334155;"></span>
+            </div>
+        </div>
+
+        <!-- ZÁLOŽKA HISTORIE -->
+        <div id="view-history" class="gym-cont" style="display: none;">
+            <h1 class="gym-h1">📜 Historie</h1>
+            <div class="gym-sub">Přehled minulých týdnů</div>
+
+            <div id="auth-section" style="margin-bottom: 24px;">
+                <div id="user-status" class="user-status">Načítání...</div>
+                <button onclick="loginGoogle()" class="google-btn" id="google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                    Přihlásit přes Google
+                </button>
+            </div>
+
+            <div id="history-list"></div>
+        </div>
+
+        <!-- ZÁLOŽKA GRAFY -->
+        <div id="view-charts" class="gym-cont" style="display: none;">
+            <h1 class="gym-h1">📈 Statistiky</h1>
+            <div class="gym-sub">Tvůj dlouhodobý progres</div>
+
+            <div class="chart-box">
+                <div class="chart-title">Splněné cviky</div>
+                <div id="chart-count"></div>
+            </div>
+
+            <div class="chart-box">
+                <div class="chart-title">Úspěšnost (%)</div>
+                <div id="chart-percent"></div>
             </div>
         </div>
     </div>
 
-    <script>
-        // === GYM LOGIKA ===
-        if (document.getElementById('gym-list')) {
-            const gymData = [
-                { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Bench press", "Shrugs", "Břicho", "Deadlift"] },
-                { cat: "RUCE", items: ["Biceps", "Triceps", "Tlak nad hlavu", "Upažování", "Zápěstí"] },
-                { cat: "NOHY", items: ["Lýtka", "Leg press", "Předkopávání", "Zadní stehna"] }
-            ];
-            const G_KEY = "moje_cviky_hub_v2";
-
-            function getMonday(d) {
-                d = new Date(d);
-                var day = d.getDay(), diff = d.getDate() - day + (day == 0 ? -6 : 1); 
-                return new Date(d.setDate(diff)).setHours(0,0,0,0);
-            }
-
-            function initGym() {
-                const list = document.getElementById("gym-list");
-                let saved = JSON.parse(localStorage.getItem(G_KEY)) || { done: [], week: 0 };
-                let nowMon = getMonday(new Date());
-
-                if (saved.week !== nowMon) {
-                    saved = { done: [], week: nowMon };
-                    localStorage.setItem(G_KEY, JSON.stringify(saved));
-                }
-                document.getElementById('gym-reset').innerText = new Date(saved.week).toLocaleDateString('cs-CZ');
-
-                let html = "";
-                let total = 0;
-                
-                gymData.forEach(c => {
-                    total += c.items.length;
-                    html += `<div class="gym-cat"><h2 style="font-weight:800; margin-bottom:12px; font-size:1.25rem;">${c.cat}</h2>`;
-                    c.items.forEach(i => {
-                        let id = i.replace(/\s+/g,'_');
-                        let chk = saved.done.includes(id) ? 'checked' : '';
-                        html += `<div class="gym-item ${chk}" onclick="togGym('${id}', this)">
-                            <div class="gym-box"></div><span style="font-weight:500;">${i}</span>
-                        </div>`;
-                    });
-                    html += `</div>`;
-                });
-                list.innerHTML = html;
-                updGymUI(saved.done.length, total);
-            }
-
-            // Funkce přiřazená do okna pro onclick v HTML
-            window.togGym = function(id, el) {
-                let saved = JSON.parse(localStorage.getItem(G_KEY));
-                let idx = saved.done.indexOf(id);
-                
-                if(idx > -1) {
-                    saved.done.splice(idx, 1);
-                    el.classList.remove('checked');
-                } else {
-                    saved.done.push(id);
-                    el.classList.add('checked');
-                    spawnPart(el);
-                }
-                localStorage.setItem(G_KEY, JSON.stringify(saved));
-                
-                let total = 0; gymData.forEach(c => total += c.items.length);
-                updGymUI(saved.done.length, total);
-            }
-
-            function updGymUI(done, total) {
-                document.getElementById('gym-bar').style.width = (done/total*100) + '%';
-                document.getElementById('gym-text').innerText = `${done} / ${total} hotovo`;
-            }
-
-            function spawnPart(el) {
-                let rect = el.getBoundingClientRect();
-                let emojis = ['🔥','💪','⚡','✨','🎯'];
-                for(let i=0; i<8; i++) {
-                    let p = document.createElement('div');
-                    p.className = 'particle';
-                    p.innerText = emojis[Math.floor(Math.random()*emojis.length)];
-                    p.style.left = (rect.left + rect.width/2) + 'px';
-                    p.style.top = (rect.top + rect.height/2) + 'px';
-                    let a = Math.random() * Math.PI * 2;
-                    let d = 50 + Math.random()*50;
-                    p.style.setProperty('--tx', Math.cos(a)*d + 'px');
-                    p.style.setProperty('--ty', Math.sin(a)*d + 'px');
-                    p.style.animation = 'particle-burst 0.6s ease-out forwards';
-                    document.body.appendChild(p);
-                    setTimeout(()=>p.remove(), 600);
-                }
-            }
-
-            initGym();
-        }
-    </script>
+    <!-- SPODNÍ NAVIGACE -->
+    <nav id="bottom-nav">
+        <div class="nav-item active" id="nav-btn-plan" onclick="switchTab('plan')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Plán</span>
+        </div>
+        <div class="nav-item" id="nav-btn-history" onclick="switchTab('history')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            <span>Historie</span>
+        </div>
+        <div class="nav-item" id="nav-btn-charts" onclick="switchTab('charts')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Grafy</span>
+        </div>
+    </nav>
+    
+    <script type="module" src="js/app.js"></script>
 </body>
 </html>
