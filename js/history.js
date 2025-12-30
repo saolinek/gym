@@ -1,4 +1,3 @@
-
 import { state } from './data.js';
 
 export function renderHistory() {
@@ -7,14 +6,13 @@ export function renderHistory() {
     const container = document.getElementById('history-list');
     if (!container) return;
     
-    let html = "";
+    let html = `
+        <h2 style="font-weight: 800; font-size: 1.25rem; color: #1e293b; margin-bottom: 16px;">Pracovní týden (Po–Pá)</h2>
+    `;
 
-    // 1. Current Week Breakdown (Mon-Fri)
+    // 1. Current Week Data
     const currentWeek = state.weeks[state.currentWeekId];
     if (currentWeek) {
-        html += `<div style="margin-bottom: 32px;">
-                    <h2 style="font-weight: 800; font-size: 1.25rem; color: #1e293b; margin-bottom: 16px;">Aktuální týden (Po–Pá)</h2>`;
-        
         const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"];
         const dayIndices = [1, 2, 3, 4, 5]; // Mon to Fri
 
@@ -51,34 +49,10 @@ export function renderHistory() {
                 </div>
             </div>`;
         });
-        html += `</div>`;
+    } else {
+        html += "<div style='text-align:center; padding:20px; color:#94a3b8;'>Žádná data pro tento týden.</div>";
     }
 
-    // 2. Past Weeks Summary
-    html += `<h2 style="font-weight: 800; font-size: 1.25rem; color: #1e293b; margin-bottom: 16px;">Minulé týdny</h2>`;
-    const weeks = Object.values(state.weeks).sort((a,b) => b.week - a.week);
-    let pastWeeksHtml = "";
-    
-    weeks.forEach(w => {
-        if (w.week.toString() === state.currentWeekId) return;
-        
-        const d = new Date(w.week);
-        const endD = new Date(d); endD.setDate(d.getDate() + 6);
-        const count = w.done ? w.done.length : 0;
-        const tot = w.total || state.totalItems;
-        const perc = tot > 0 ? Math.round((count/tot)*100) : 0;
-        
-        pastWeeksHtml += `
-        <div class="history-card">
-            <div class="history-date">${d.getDate()}.${d.getMonth()+1}. – ${endD.getDate()}.${endD.getMonth()+1}.</div>
-            <div class="history-stats">
-                <div class="history-perc">${perc}%</div>
-                <div class="history-count">${count} / ${tot}</div>
-            </div>
-        </div>`;
-    });
-    
-    if (pastWeeksHtml === "") pastWeeksHtml = "<div style='text-align:center; padding:20px; color:#94a3b8;'>Žádná historie</div>";
-    
-    container.innerHTML = html + pastWeeksHtml;
+    // No past weeks rendering as requested.
+    container.innerHTML = html;
 }

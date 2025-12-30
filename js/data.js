@@ -1,7 +1,6 @@
-
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.3.0"; // Version 1.3.0: Structural optimization & strict lifecycle
+export const APP_VERSION = "1.3.1"; // Version 1.3.1: History and Chart UI update
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
