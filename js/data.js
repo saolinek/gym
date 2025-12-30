@@ -1,6 +1,7 @@
+
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.0.2"; // Standardized environment handling
+export const APP_VERSION = "1.1.0"; // UI Update: Daily breakdown & simplified charts
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -15,7 +16,7 @@ export const state = {
     appReady: false,
     activeView: 'plan', // 'plan', 'history', 'charts'
     version: APP_VERSION,
-    isLocal: false,     // http://localhost or http://127.0.0.1
+    isLocal: false,
     
     // Data
     currentUser: null,
@@ -53,17 +54,13 @@ export function calcTotalItems() {
 // === 3. STATE INITIALIZATION ===
 
 export function initializeState() {
-    // A. Detect Environment (Strict localhost/127.0.0.1)
     state.isLocal = window.location.hostname === 'localhost' || 
                     window.location.hostname === '127.0.0.1';
 
-    // B. Check Version & Cache
     checkVersion();
 
-    // C. Set Context
     state.currentWeekId = getMondayTimestamp(new Date()).toString();
 
-    // D. Load Plan
     try {
         const savedPlan = localStorage.getItem(PLAN_KEY);
         state.plan = savedPlan ? JSON.parse(savedPlan) : JSON.parse(JSON.stringify(DEFAULT_PLAN));
@@ -71,10 +68,8 @@ export function initializeState() {
         state.plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
     }
 
-    // E. Calculate Derived State
     calcTotalItems();
 
-    // F. Load History
     try {
         const savedHistory = localStorage.getItem(LS_KEY);
         if (savedHistory) {
@@ -87,7 +82,6 @@ export function initializeState() {
         state.weeks = {};
     }
 
-    // G. Ensure Integrity
     if (!state.weeks[state.currentWeekId]) {
         state.weeks[state.currentWeekId] = {
             week: parseInt(state.currentWeekId),
@@ -97,10 +91,7 @@ export function initializeState() {
     }
     if (!state.weeks[state.currentWeekId].done) state.weeks[state.currentWeekId].done = [];
     
-    // H. Mark Ready
     state.appReady = true;
-    
-    // I. Passive UI Update
     updateDateLabel();
 }
 
@@ -119,8 +110,6 @@ function updateDateLabel() {
         el.innerText = `${d.getDate()}.${d.getMonth()+1}. – ${endD.getDate()}.${endD.getMonth()+1}.`;
     }
 }
-
-// === 4. PERSISTENCE ===
 
 export function saveLocalData() {
     if (!state.appReady) return;

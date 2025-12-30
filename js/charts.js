@@ -1,57 +1,43 @@
+
 import { state } from './data.js';
 
 export function renderCharts() {
     if (!state.appReady) return;
 
-    if (!state.weeks) return;
-    const weeks = Object.values(state.weeks).sort((a,b) => a.week - b.week).slice(-10);
+    const container = document.getElementById('view-charts');
+    if (!container) return;
+
+    // Filter and sort weeks
+    const weeks = Object.values(state.weeks).sort((a,b) => b.week - a.week);
     
-    // 1. Bar Chart (Count)
-    const elCount = document.getElementById('chart-count');
-    if (elCount) {
-        if (weeks.length === 0) { 
-            elCount.innerHTML = "<div style='text-align:center; color:#ccc; padding:20px;'>Žádná data</div>"; 
-        } else {
-            const w = 300, h = 150;
-            const barW = (w / weeks.length) * 0.6;
-            const gap = (w / weeks.length) * 0.4;
-            const maxVal = Math.max(...weeks.map(wk => wk.total || state.totalItems)) || 1;
-            
-            let svg = `<svg viewBox="0 0 ${w} ${h}">`;
-            weeks.forEach((wk, i) => {
-                const count = wk.done ? wk.done.length : 0;
-                const barH = (count / maxVal) * (h - 20);
-                const x = i * (barW + gap) + 10;
-                const y = h - barH - 20;
-                svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" class="bar-rect" /><text x="${x + barW/2}" y="${h}" class="chart-label">${new Date(wk.week).getDate()}.${new Date(wk.week).getMonth()+1}.</text>`;
-                if(count > 0) svg += `<text x="${x + barW/2}" y="${y-5}" class="chart-label" style="font-weight:bold;">${count}</text>`;
-            });
-            svg += `</svg>`;
-            elCount.innerHTML = svg;
-        }
+    let html = `
+        <h1 class="gym-h1" style="margin-bottom: 32px;">Přehled aktivity</h1>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 500px; margin: 0 auto;">
+    `;
+
+    weeks.forEach(w => {
+        const isCurrent = w.week.toString() === state.currentWeekId;
+        const d = new Date(w.week);
+        const endD = new Date(d); endD.setDate(d.getDate() + 6);
+        
+        const label = isCurrent ? "Tento týden" : `${d.getDate()}.${d.getMonth()+1}. – ${endD.getDate()}.${endD.getMonth()+1}.`;
+        const count = w.done ? w.done.length : 0;
+
+        html += `
+            <div class="history-card" style="margin-bottom: 0; padding: 16px 24px; border-top: none; border-left: 5px solid ${isCurrent ? '#3b82f6' : '#cbd5e1'}">
+                <div style="font-weight: 600; color: ${isCurrent ? '#1e293b' : '#64748b'};">${label}</div>
+                <div style="text-align: right;">
+                    <div style="font-size: 1.5rem; font-weight: 900; color: #1e293b;">${count}</div>
+                    <div style="font-size: 0.7rem; color: #94a3b8; font-weight: 700; text-transform: uppercase;">splněno</div>
+                </div>
+            </div>
+        `;
+    });
+
+    if (weeks.length === 0) {
+        html += "<div style='text-align:center; padding:40px; color:#94a3b8;'>Zatím žádná data k zobrazení.</div>";
     }
 
-    // 2. Line Chart (Percent)
-    const elPerc = document.getElementById('chart-percent');
-    if (elPerc) {
-         if (weeks.length === 0) { 
-             elPerc.innerHTML = "<div style='text-align:center; color:#ccc; padding:20px;'>Žádná data</div>"; 
-         } else {
-            const w = 300, h = 150;
-            let svg = `<svg viewBox="0 0 ${w} ${h}">`;
-            let points = "";
-            weeks.forEach((wk, i) => {
-                const count = wk.done ? wk.done.length : 0;
-                const tot = wk.total || state.totalItems;
-                const perc = tot > 0 ? (count / tot) : 0;
-                const x = (i / (weeks.length - 1 || 1)) * (w - 20) + 10;
-                const y = h - (perc * (h - 30)) - 20;
-                
-                points += `${x},${y} `;
-                svg += `<circle cx="${x}" cy="${y}" r="4" class="chart-dot" /><text x="${x}" y="${y-10}" class="chart-label">${Math.round(perc*100)}%</text>`;
-            });
-            svg += `<polyline points="${points}" class="chart-line" /></svg>`;
-            elPerc.innerHTML = svg;
-        }
-    }
+    html += `</div>`;
+    container.innerHTML = html;
 }

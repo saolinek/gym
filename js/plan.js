@@ -1,27 +1,24 @@
+
 import { state, calcTotalItems, saveLocalPlan, saveLocalData } from './data.js';
 import { saveCloudWeekData, saveCloudPlan } from './firebase.js';
 
 // === PURE RENDER FUNCTION ===
 export function renderPlan() {
-    // 1. Safety Guard
     if (!state.appReady) return;
 
     const list = document.getElementById("gym-list");
     if (!list) return;
 
-    // 2. Data Access (Read-Only)
     const weekData = state.weeks[state.currentWeekId];
-    // Fallback for visual safety
-    const doneList = weekData ? (weekData.done || []) : [];
+    // Support both old string format and new "id|timestamp" format
+    const doneList = weekData ? (weekData.done || []).map(entry => entry.split('|')[0]) : [];
     
     let html = "";
     let doneCount = 0;
 
-    // 3. Render Loop
     state.plan.forEach((c, catIdx) => {
         html += `<div class="gym-cat">`;
         
-        // Header
         html += `<div class="cat-header">
                     <h2 style="font-weight:800; margin:0; font-size:1.25rem; flex-grow:1;" ${state.isEditMode ? `onclick="renameCategory(${catIdx})"` : ''}>${c.cat}</h2>
                     ${state.isEditMode ? `
@@ -33,7 +30,6 @@ export function renderPlan() {
                     ` : ''}
                  </div>`;
         
-        // Items
         c.items.forEach((i, itemIdx) => {
             let id = i.replace(/\s+/g,'_');
             let isDone = doneList.includes(id);
@@ -61,52 +57,47 @@ export function renderPlan() {
     });
     list.innerHTML = html;
     
-    // 4. Update Progress Bar
-    updateProgressBar(doneCount);
-}
-
-function updateProgressBar(doneCount) {
     const bar = document.getElementById('gym-bar');
     const txt = document.getElementById('gym-text');
     if(bar) bar.style.width = (state.totalItems > 0 ? (doneCount/state.totalItems*100) : 0) + '%';
     if(txt) txt.innerText = `${doneCount} / ${state.totalItems} hotovo`;
 }
 
-// === ACTIONS (MUTATE STATE -> SAVE -> RENDER) ===
-
-// Helper to trigger UI update via main app controller
 function triggerAppRender() {
     if (window.renderApp) window.renderApp();
-    else renderPlan(); // Fallback
+    else renderPlan();
 }
 
 export function togGym(id, el) {
     if (state.isEditMode) return;
     
-    // Guard
     if (!state.weeks[state.currentWeekId]) return;
     
     const weekData = state.weeks[state.currentWeekId];
-    let idx = weekData.done.indexOf(id);
+    const timestamp = Date.now();
+    
+    // Find if already done (independent of timestamp)
+    let existingEntry = weekData.done.find(entry => entry.split('|')[0] === id);
+    let idx = weekData.done.indexOf(existingEntry);
     
     if(idx > -1) {
         weekData.done.splice(idx, 1);
         el.classList.remove('checked');
     } else {
-        weekData.done.push(id);
+        // Store with timestamp for daily history
+        weekData.done.push(`${id}|${timestamp}`);
         el.classList.add('checked');
         spawnPart(el);
     }
     
-    // Update metadata (ensure week total matches current plan)
     weekData.total = state.totalItems;
-    
-    // Save & Sync
     saveCloudWeekData(state.currentWeekId);
     
-    // Quick UI Update (Optimization: don't full re-render for checkbox)
     const doneCount = weekData.done.length;
-    updateProgressBar(doneCount);
+    const bar = document.getElementById('gym-bar');
+    const txt = document.getElementById('gym-text');
+    if(bar) bar.style.width = (state.totalItems > 0 ? (doneCount/state.totalItems*100) : 0) + '%';
+    if(txt) txt.innerText = `${doneCount} / ${state.totalItems} hotovo`;
 }
 
 export function toggleEditMode() {
@@ -128,7 +119,7 @@ export function addCategory() {
     const name = prompt("Název nové kategorie:");
     if (name) {
         state.plan.push({ cat: name, items: [] });
-        calcTotalItems(); // Recalc totals after mutation
+        calcTotalItems();
         saveCloudPlan();
         triggerAppRender();
     }
@@ -137,7 +128,7 @@ export function addCategory() {
 export function deleteCategory(idx) {
     if (confirm(`Opravdu smazat kategorii "${state.plan[idx].cat}"?`)) {
         state.plan.splice(idx, 1);
-        calcTotalItems(); // Recalc totals after mutation
+        calcTotalItems();
         saveCloudPlan();
         triggerAppRender();
     }
@@ -147,7 +138,7 @@ export function addItem(catIdx) {
     const name = prompt("Název nového cviku:");
     if (name) {
         state.plan[catIdx].items.push(name);
-        calcTotalItems(); // Recalc totals after mutation
+        calcTotalItems();
         saveCloudPlan();
         triggerAppRender();
     }
@@ -155,7 +146,7 @@ export function addItem(catIdx) {
 
 export function deleteItem(catIdx, itemIdx) {
     state.plan[catIdx].items.splice(itemIdx, 1);
-    calcTotalItems(); // Recalc totals after mutation
+    calcTotalItems();
     saveCloudPlan();
     triggerAppRender();
 }
