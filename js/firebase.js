@@ -1,4 +1,3 @@
-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -13,32 +12,35 @@ const firebaseConfig = {
   appId: "1:1015033490512:web:77bf9312cdb9bb503b7555"
 };
 
-let app = null;
 let auth = null;
 let db = null;
 let firebaseInitialized = false;
 
-// === INITIALIZATION ===
-try {
-    // We always try to init Firebase because it works on localhost and https.
-    // file:// is not supported due to ES modules requiring a server.
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    firebaseInitialized = true;
-} catch (e) {
-    console.warn("Firebase Init Error (Offline Fallback):", e);
+// === LIFE CYCLE: INIT FIREBASE ===
+export function initFirebase() {
+    try {
+        const app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        firebaseInitialized = true;
+        return { auth, db, success: true };
+    } catch (e) {
+        console.warn("Firebase Init Error:", e);
+        return { success: false };
+    }
 }
 
+// Helpers to access instances safely
 export { auth, db, firebaseInitialized };
 
+// === UI HELPERS ===
 export function updateAuthUI(user) {
     const statusEl = document.getElementById('user-status');
     const btnEl = document.getElementById('google-btn');
     if (!statusEl || !btnEl) return;
 
     if (!firebaseInitialized) {
-        statusEl.innerText = 'Offline režim (Firebase error)';
+        statusEl.innerText = 'Offline režim';
         btnEl.style.display = 'none';
         return;
     }
@@ -52,11 +54,9 @@ export function updateAuthUI(user) {
     }
 }
 
+// === AUTH ACTIONS ===
 export async function loginGoogle() {
-    if (!firebaseInitialized) {
-        alert("Přihlášení není dostupné.");
-        return;
-    }
+    if (!firebaseInitialized) return;
     try { 
         await signInWithPopup(auth, new GoogleAuthProvider()); 
     } catch (e) { 
@@ -68,6 +68,7 @@ export async function loginGoogle() {
     }
 }
 
+// === SYNC LOGIC ===
 export async function syncFromFirestore(uid) {
     if (!firebaseInitialized || !db) return;
     try {

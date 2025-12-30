@@ -1,6 +1,7 @@
+
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.2.0"; // Version 1.2.0: Robust cache invalidation
+export const APP_VERSION = "1.3.0"; // Version 1.3.0: Structural optimization & strict lifecycle
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -15,7 +16,6 @@ export const state = {
     appReady: false,
     activeView: 'plan', // 'plan', 'history', 'charts'
     version: APP_VERSION,
-    isLocal: false,
     
     // Data
     currentUser: null,
@@ -50,14 +50,11 @@ export function calcTotalItems() {
     }
 }
 
-// === 3. STATE INITIALIZATION ===
+// === 3. STATE INITIALIZATION (PHASE: INIT) ===
 
 export function initializeState() {
-    state.isLocal = window.location.hostname === 'localhost' || 
-                    window.location.hostname === '127.0.0.1';
-
     // A. Check Version & Force Cache Clear if needed
-    const versionChanged = checkVersionSync();
+    checkVersionSync();
 
     // B. Set Context
     state.currentWeekId = getMondayTimestamp(new Date()).toString();
@@ -101,59 +98,15 @@ export function initializeState() {
     
     // H. Passive UI Update
     updateDateLabel();
-
-    // I. If version changed, perform async cleanup in background
-    if (versionChanged) {
-        performAsyncCleanup();
-    }
 }
 
-/**
- * Synchronous version check to decide if we need a refresh
- */
 function checkVersionSync() {
     const savedVersion = localStorage.getItem('gym_app_version');
     if (savedVersion !== APP_VERSION) {
-        console.info(`Version upgrade: ${savedVersion || '0.0.0'} -> ${APP_VERSION}`);
         localStorage.setItem('gym_app_version', APP_VERSION);
-        
-        // If we already had a version saved and it's different, 
-        // it means we might have stale JS in browser memory/cache.
         return true;
     }
     return false;
-}
-
-/**
- * Asynchronous cleanup of browser caches
- */
-async function performAsyncCleanup() {
-    console.log("Invalidating application cache...");
-    
-    // 1. Clear Cache Storage (Service Worker)
-    if ('caches' in window) {
-        try {
-            const cacheNames = await caches.keys();
-            await Promise.all(cacheNames.map(name => caches.delete(name)));
-            console.log("Cache Storage cleared.");
-        } catch (e) {
-            console.warn("Cache Storage clear failed:", e);
-        }
-    }
-
-    // 2. Unregister Service Workers to ensure fresh load next time
-    if ('serviceWorker' in navigator) {
-        try {
-            const registrations = await navigator.serviceWorker.getRegistrations();
-            await Promise.all(registrations.map(reg => reg.unregister()));
-            console.log("Service Workers unregistered.");
-        } catch (e) {
-            console.warn("Service Worker unregister failed:", e);
-        }
-    }
-
-    // 3. Optional: Hard reload if critical version mismatch (not always needed but safe)
-    // window.location.reload(true);
 }
 
 function updateDateLabel() {
