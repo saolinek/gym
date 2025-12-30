@@ -1,4 +1,3 @@
-
 import { state, initializeState } from './data.js';
 import { auth, loginGoogle, updateAuthUI, syncFromFirestore } from './firebase.js';
 import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory } from './plan.js';
@@ -56,7 +55,11 @@ function boot() {
     // A. Initialize State (Loads LS, Calcs Totals, Ensures Integrity)
     initializeState();
     
-    // B. Initial Render
+    // B. Display Version
+    const verEl = document.getElementById('app-ver-display');
+    if(verEl) verEl.innerText = `v${state.version || '?'}`;
+
+    // C. Initial Render
     window.renderApp();
 }
 

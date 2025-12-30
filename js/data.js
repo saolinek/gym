@@ -1,6 +1,6 @@
-
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
+export const APP_VERSION = "1.0.0"; // Sémantické verzování dle gemini.md
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -14,6 +14,7 @@ export const state = {
     // System Flags
     appReady: false,
     activeView: 'plan', // 'plan', 'history', 'charts'
+    version: APP_VERSION,
     
     // Data
     currentUser: null,
@@ -51,10 +52,13 @@ export function calcTotalItems() {
 // === 3. STATE INITIALIZATION (PHASE: INIT) ===
 
 export function initializeState() {
-    // A. Set Context
+    // A. Check Version & Cache
+    checkVersion();
+
+    // B. Set Context
     state.currentWeekId = getMondayTimestamp(new Date()).toString();
 
-    // B. Load Plan
+    // C. Load Plan
     try {
         const savedPlan = localStorage.getItem(PLAN_KEY);
         state.plan = savedPlan ? JSON.parse(savedPlan) : JSON.parse(JSON.stringify(DEFAULT_PLAN));
@@ -63,10 +67,10 @@ export function initializeState() {
         state.plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
     }
 
-    // C. Calculate Derived State (Totals)
+    // D. Calculate Derived State (Totals)
     calcTotalItems();
 
-    // D. Load History
+    // E. Load History
     try {
         const savedHistory = localStorage.getItem(LS_KEY);
         if (savedHistory) {
@@ -80,7 +84,7 @@ export function initializeState() {
         state.weeks = {};
     }
 
-    // E. Ensure Integrity (Current Week)
+    // F. Ensure Integrity (Current Week)
     if (!state.weeks[state.currentWeekId]) {
         state.weeks[state.currentWeekId] = {
             week: parseInt(state.currentWeekId),
@@ -94,11 +98,20 @@ export function initializeState() {
         state.weeks[state.currentWeekId].done = [];
     }
     
-    // F. Mark Ready
+    // G. Mark Ready
     state.appReady = true;
     
-    // G. Passive UI Update (Date Label)
+    // H. Passive UI Update (Date Label)
     updateDateLabel();
+}
+
+function checkVersion() {
+    const savedVersion = localStorage.getItem('gym_app_version');
+    if (savedVersion !== APP_VERSION) {
+        console.info(`Upgrading App: ${savedVersion || 'v0'} -> ${APP_VERSION}`);
+        // Zde by byla logika pro migraci dat v případě MAJOR změny
+        localStorage.setItem('gym_app_version', APP_VERSION);
+    }
 }
 
 function updateDateLabel() {
