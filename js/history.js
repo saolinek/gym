@@ -1,4 +1,3 @@
-
 import { state } from './data.js';
 
 export function renderHistory() {
@@ -7,13 +6,16 @@ export function renderHistory() {
     const container = document.getElementById('history-list');
     if (!container) return;
     
-    let html = '<div style="display: flex; flex-direction: column; gap: 12px; padding: 10px 0;">';
+    let html = '<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0;">';
 
     const currentWeek = state.weeks[state.currentWeekId];
-    if (currentWeek) {
-        const dayIndices = [1, 2, 3, 4, 5, 6, 0]; // Pondělí (1) až Neděle (0)
+    const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota", "Neděle"];
+    const dayIndices = [1, 2, 3, 4, 5, 6, 0]; // Monday (1) to Sunday (0)
 
-        dayIndices.forEach(dayIdx => {
+    dayIndices.forEach((dayIdx, i) => {
+        let dayActivityHtml = "";
+        
+        if (currentWeek) {
             const dayDone = (currentWeek.done || []).filter(entry => {
                 const parts = entry.split('|');
                 if (parts.length < 2) return false;
@@ -21,13 +23,11 @@ export function renderHistory() {
                 return d.getDay() === dayIdx;
             });
 
-            // Zobrazuj pouze dny s aktivitou > 0
             if (dayDone.length > 0) {
                 const catCounts = {};
                 dayDone.forEach(entry => {
                     const id = entry.split('|')[0];
                     const category = state.plan.find(c => c.items.some(item => item.replace(/\s+/g,'_') === id));
-                    // Kategorie "OSTATNÍ" se ignoruje pro určení převládající kategorie
                     if (category && category.cat !== "OSTATNÍ") {
                         catCounts[category.cat] = (catCounts[category.cat] || 0) + 1;
                     }
@@ -38,29 +38,24 @@ export function renderHistory() {
                 
                 if (entries.length > 0) {
                     const sortedCats = entries.sort((a,b) => b[1] - a[1]);
-                    // Kontrola, zda první kategorie skutečně převládá (není tam remíza na prvním místě)
                     if (sortedCats.length > 1 && sortedCats[0][1] === sortedCats[1][1]) {
                         prevailingCat = "Smíšené";
                     } else {
                         prevailingCat = sortedCats[0][0];
                     }
                 }
-
-                // Minimalistický formát: "Počet Kategorie"
-                html += `
-                <div style="font-weight: 800; font-size: 1.5rem; color: #1e293b; letter-spacing: -0.5px;">
-                    <span style="color: #3b82f6;">${dayDone.length}</span> ${prevailingCat}
-                </div>`;
+                
+                dayActivityHtml = `<span style="margin-left: auto; font-weight: 800; color: #3b82f6;">${dayDone.length} ${prevailingCat}</span>`;
             }
-        });
-    }
+        }
+
+        html += `
+        <div style="display: flex; align-items: center; padding: 12px 16px; background: white; border-radius: 12px; border: 1px solid #e2e8f0;">
+            <span style="font-weight: 600; color: #64748b;">${dayNames[i]}</span>
+            ${dayActivityHtml}
+        </div>`;
+    });
 
     html += '</div>';
-    
-    // Fallback pokud není žádná aktivita v celém týdnu
-    if (html === '<div style="display: flex; flex-direction: column; gap: 12px; padding: 10px 0;"></div>') {
-        html = "<div style='text-align:center; padding:40px; color:#94a3b8; font-weight:500;'>Zatím žádná aktivita</div>";
-    }
-    
     container.innerHTML = html;
 }
