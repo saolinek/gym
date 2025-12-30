@@ -1,6 +1,6 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.0.0"; // Sémantické verzování dle gemini.md
+export const APP_VERSION = "1.0.2"; // Standardized environment handling
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -15,6 +15,7 @@ export const state = {
     appReady: false,
     activeView: 'plan', // 'plan', 'history', 'charts'
     version: APP_VERSION,
+    isLocal: false,     // http://localhost or http://127.0.0.1
     
     // Data
     currentUser: null,
@@ -49,28 +50,31 @@ export function calcTotalItems() {
     }
 }
 
-// === 3. STATE INITIALIZATION (PHASE: INIT) ===
+// === 3. STATE INITIALIZATION ===
 
 export function initializeState() {
-    // A. Check Version & Cache
+    // A. Detect Environment (Strict localhost/127.0.0.1)
+    state.isLocal = window.location.hostname === 'localhost' || 
+                    window.location.hostname === '127.0.0.1';
+
+    // B. Check Version & Cache
     checkVersion();
 
-    // B. Set Context
+    // C. Set Context
     state.currentWeekId = getMondayTimestamp(new Date()).toString();
 
-    // C. Load Plan
+    // D. Load Plan
     try {
         const savedPlan = localStorage.getItem(PLAN_KEY);
         state.plan = savedPlan ? JSON.parse(savedPlan) : JSON.parse(JSON.stringify(DEFAULT_PLAN));
     } catch (e) { 
-        console.warn("Plan Load Error (using default):", e);
         state.plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
     }
 
-    // D. Calculate Derived State (Totals)
+    // E. Calculate Derived State
     calcTotalItems();
 
-    // E. Load History
+    // F. Load History
     try {
         const savedHistory = localStorage.getItem(LS_KEY);
         if (savedHistory) {
@@ -80,11 +84,10 @@ export function initializeState() {
             state.weeks = {};
         }
     } catch (e) { 
-        console.warn("History Load Error (resetting):", e);
         state.weeks = {};
     }
 
-    // F. Ensure Integrity (Current Week)
+    // G. Ensure Integrity
     if (!state.weeks[state.currentWeekId]) {
         state.weeks[state.currentWeekId] = {
             week: parseInt(state.currentWeekId),
@@ -92,24 +95,18 @@ export function initializeState() {
             total: state.totalItems
         };
     }
+    if (!state.weeks[state.currentWeekId].done) state.weeks[state.currentWeekId].done = [];
     
-    // Double check structure
-    if (!state.weeks[state.currentWeekId].done) {
-        state.weeks[state.currentWeekId].done = [];
-    }
-    
-    // G. Mark Ready
+    // H. Mark Ready
     state.appReady = true;
     
-    // H. Passive UI Update (Date Label)
+    // I. Passive UI Update
     updateDateLabel();
 }
 
 function checkVersion() {
     const savedVersion = localStorage.getItem('gym_app_version');
     if (savedVersion !== APP_VERSION) {
-        console.info(`Upgrading App: ${savedVersion || 'v0'} -> ${APP_VERSION}`);
-        // Zde by byla logika pro migraci dat v případě MAJOR změny
         localStorage.setItem('gym_app_version', APP_VERSION);
     }
 }
@@ -129,12 +126,12 @@ export function saveLocalData() {
     if (!state.appReady) return;
     try {
         localStorage.setItem(LS_KEY, JSON.stringify({ weeks: state.weeks }));
-    } catch(e) { console.warn("LS Save Error", e); }
+    } catch(e) {}
 }
 
 export function saveLocalPlan() {
     if (!state.appReady) return;
     try {
         localStorage.setItem(PLAN_KEY, JSON.stringify(state.plan));
-    } catch(e) { console.warn("LS Plan Save Error", e); }
+    } catch(e) {}
 }
