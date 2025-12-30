@@ -1,4 +1,3 @@
-
 import { state, calcTotalItems, saveLocalPlan, saveLocalData } from './data.js';
 import { saveCloudWeekData, saveCloudPlan } from './firebase.js';
 
@@ -12,7 +11,7 @@ export function renderPlan() {
 
     // 2. Data Access (Read-Only)
     const weekData = state.weeks[state.currentWeekId];
-    // Fallback for visual safety, though init guarantees existence
+    // Fallback for visual safety
     const doneList = weekData ? (weekData.done || []) : [];
     
     let html = "";
@@ -63,6 +62,10 @@ export function renderPlan() {
     list.innerHTML = html;
     
     // 4. Update Progress Bar
+    updateProgressBar(doneCount);
+}
+
+function updateProgressBar(doneCount) {
     const bar = document.getElementById('gym-bar');
     const txt = document.getElementById('gym-text');
     if(bar) bar.style.width = (state.totalItems > 0 ? (doneCount/state.totalItems*100) : 0) + '%';
@@ -95,7 +98,7 @@ export function togGym(id, el) {
         spawnPart(el);
     }
     
-    // Update metadata
+    // Update metadata (ensure week total matches current plan)
     weekData.total = state.totalItems;
     
     // Save & Sync
@@ -103,10 +106,7 @@ export function togGym(id, el) {
     
     // Quick UI Update (Optimization: don't full re-render for checkbox)
     const doneCount = weekData.done.length;
-    const bar = document.getElementById('gym-bar');
-    const txt = document.getElementById('gym-text');
-    if(bar) bar.style.width = (state.totalItems > 0 ? (doneCount/state.totalItems*100) : 0) + '%';
-    if(txt) txt.innerText = `${doneCount} / ${state.totalItems} hotovo`;
+    updateProgressBar(doneCount);
 }
 
 export function toggleEditMode() {
@@ -128,7 +128,7 @@ export function addCategory() {
     const name = prompt("Název nové kategorie:");
     if (name) {
         state.plan.push({ cat: name, items: [] });
-        calcTotalItems(); // Recalc totals
+        calcTotalItems(); // Recalc totals after mutation
         saveCloudPlan();
         triggerAppRender();
     }
@@ -137,7 +137,7 @@ export function addCategory() {
 export function deleteCategory(idx) {
     if (confirm(`Opravdu smazat kategorii "${state.plan[idx].cat}"?`)) {
         state.plan.splice(idx, 1);
-        calcTotalItems(); // Recalc totals
+        calcTotalItems(); // Recalc totals after mutation
         saveCloudPlan();
         triggerAppRender();
     }
@@ -147,7 +147,7 @@ export function addItem(catIdx) {
     const name = prompt("Název nového cviku:");
     if (name) {
         state.plan[catIdx].items.push(name);
-        calcTotalItems(); // Recalc totals
+        calcTotalItems(); // Recalc totals after mutation
         saveCloudPlan();
         triggerAppRender();
     }
@@ -155,7 +155,7 @@ export function addItem(catIdx) {
 
 export function deleteItem(catIdx, itemIdx) {
     state.plan[catIdx].items.splice(itemIdx, 1);
-    calcTotalItems(); // Recalc totals
+    calcTotalItems(); // Recalc totals after mutation
     saveCloudPlan();
     triggerAppRender();
 }

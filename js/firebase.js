@@ -1,3 +1,4 @@
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
@@ -68,7 +69,13 @@ export async function loginGoogle() {
         await signInWithPopup(auth, new GoogleAuthProvider()); 
     } catch (e) { 
         console.error("Login Error:", e);
-        alert("Chyba přihlášení: " + e.message); 
+        if (e.code === 'auth/unauthorized-domain') {
+            alert("Chyba domény: Tato doména není povolena pro Google přihlášení ve Firebase konzoli.");
+        } else if (e.code === 'auth/popup-closed-by-user') {
+            // User closed popup, ignore
+        } else {
+            alert("Chyba přihlášení: " + e.message); 
+        }
     }
 }
 
