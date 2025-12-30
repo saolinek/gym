@@ -9,8 +9,8 @@ export function renderHistory() {
     let html = '<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0;">';
 
     const currentWeek = state.weeks[state.currentWeekId];
-    const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota", "Neděle"];
-    const dayIndices = [1, 2, 3, 4, 5, 6, 0]; // Monday (1) to Sunday (0)
+    const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"];
+    const dayIndices = [1, 2, 3, 4, 5]; // Monday (1) to Friday (5)
 
     dayIndices.forEach((dayIdx, i) => {
         let dayActivityHtml = "";
@@ -43,9 +43,19 @@ export function renderHistory() {
                     } else {
                         prevailingCat = sortedCats[0][0];
                     }
+                    
+                    dayActivityHtml = `<span style="margin-left: auto; font-weight: 800; color: #3b82f6;">${dayDone.length} ${prevailingCat}</span>`;
                 }
-                
-                dayActivityHtml = `<span style="margin-left: auto; font-weight: 800; color: #3b82f6;">${dayDone.length} ${prevailingCat}</span>`;
+                // If entries.length is 0 (only OSTATNÍ or no identified categories), show nothing specific or just count?
+                // The requirement: "Pokud den nemá aktivitu: zobraz pouze název dne".
+                // If it has activity but it's ignored (OSTATNÍ), effectively it might look like no activity if we strictly follow logic.
+                // However, requirement 3 says "Kategorie Ostatní ignoruj".
+                // If dayDone > 0 but no valid category (all OSTATNÍ), entries is empty.
+                // Requirement 2: "Pokud má den aktivitu: zobraz 'číslo + kategorie'".
+                // If the only activity is OSTATNÍ, and we ignore it for category determination...
+                // The code above calculates counts excluding OSTATNÍ.
+                // If only OSTATNÍ exists, entries is empty, dayActivityHtml remains "".
+                // This seems consistent with "ignoring" OSTATNÍ for the summary.
             }
         }
 
