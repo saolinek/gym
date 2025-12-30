@@ -1,6 +1,6 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.3.5"; // Version 1.3.5: Unified text to "Týden"
+export const APP_VERSION = "1.3.6"; // Version 1.3.6: Returned Sat/Sun to history
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },

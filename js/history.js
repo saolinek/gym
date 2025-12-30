@@ -9,8 +9,8 @@ export function renderHistory() {
     let html = '<div style="display: flex; flex-direction: column; gap: 8px; padding: 10px 0;">';
 
     const currentWeek = state.weeks[state.currentWeekId];
-    const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek"];
-    const dayIndices = [1, 2, 3, 4, 5]; // Monday (1) to Friday (5)
+    const dayNames = ["Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota", "Neděle"];
+    const dayIndices = [1, 2, 3, 4, 5, 6, 0]; // Monday (1) to Sunday (0)
 
     dayIndices.forEach((dayIdx, i) => {
         let dayActivityHtml = "";
