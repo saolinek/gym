@@ -13,6 +13,11 @@ export function renderPlan() {
     // Support both old string format and new "id|timestamp" format
     const doneList = weekData ? (weekData.done || []).map(entry => entry.split('|')[0]) : [];
     
+    // === LOGIC FOR MISSED EXERCISES ===
+    const prevWeekTs = parseInt(state.currentWeekId) - (7 * 24 * 60 * 60 * 1000);
+    const prevWeekData = state.weeks[prevWeekTs.toString()];
+    const prevDoneList = prevWeekData ? (prevWeekData.done || []).map(entry => entry.split('|')[0]) : null;
+
     let html = "";
     let doneCount = 0;
 
@@ -35,6 +40,13 @@ export function renderPlan() {
             let isDone = doneList.includes(id);
             if(isDone) doneCount++;
 
+            // Check if missed last week (only if data exists for prev week and currently not done/or done, doesn't matter, it's a history fact)
+            // Logic: IF prevWeekData exists AND item NOT in prevDoneList -> Missed
+            let missedLabel = "";
+            if (prevDoneList && !prevDoneList.includes(id)) {
+                missedLabel = `<span style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
+            }
+
             if (state.isEditMode) {
                 html += `<div class="gym-item" style="cursor: default;">
                     <span style="font-weight:500; flex-grow:1;">${i}</span>
@@ -44,7 +56,7 @@ export function renderPlan() {
                 </div>`;
             } else {
                 html += `<div class="gym-item ${isDone ? 'checked' : ''}" onclick="togGym('${id}', this)">
-                    <div class="gym-box"></div><span style="font-weight:500;">${i}</span>
+                    <div class="gym-box"></div><span style="font-weight:500;">${i} ${missedLabel}</span>
                 </div>`;
             }
         });

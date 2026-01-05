@@ -11,7 +11,7 @@
         /* === ZÁKLADNÍ NASTAVENÍ === */
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body, html { 
-            margin: 0; padding: 0; height: 100%; width: 100%; overflow-x: hidden; 
+            margin: 0; padding: 0; min-height: 100%; width: 100%; 
             font-family: 'Inter', sans-serif; 
             background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
             color: #1e293b;
@@ -20,6 +20,7 @@
         .screen-content {
             padding: 24px; padding-top: 40px; padding-bottom: 90px; min-height: 100vh;
             animation: fadeInPage 0.5s ease-out;
+            width: 100%; overflow-x: hidden;
         }
         @keyframes fadeInPage { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         
