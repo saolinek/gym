@@ -158,6 +158,73 @@
             text-align: center; color: #94a3b8; font-size: 0.7rem; margin-top: 20px; opacity: 0.6;
         }
 
+        /* === NEW FEATURES & DARK MODE === */
+        body.dark-mode { background: #0f172a; color: #f1f5f9; }
+        body.dark-mode .gym-h1 { color: #f1f5f9; }
+        body.dark-mode .gym-sub { color: #94a3b8; }
+        body.dark-mode .gym-cat { background: #1e293b; border-color: #334155; }
+        body.dark-mode .gym-cat h2 { opacity: 0.9; }
+        body.dark-mode .gym-item { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+        body.dark-mode .gym-box { background: #334155; border-color: #475569; }
+        body.dark-mode #bottom-nav { background: rgba(30, 41, 59, 0.95); border-top-color: rgba(255,255,255,0.1); }
+        body.dark-mode .nav-item { color: #64748b; }
+        body.dark-mode .nav-item.active { color: #60a5fa; }
+        body.dark-mode .history-card { background: #1e293b; border-color: #334155; }
+        body.dark-mode .chart-box { background: #1e293b; }
+        body.dark-mode .gym-item.checked { background: rgba(30, 41, 59, 0.6); border-color: #334155; }
+
+        /* Updated Completion Style */
+        .gym-item.checked {
+            background: rgba(255, 255, 255, 0.6);
+            border-color: #cbd5e1;
+            opacity: 0.7;
+        }
+        .gym-item.checked span {
+            text-decoration: line-through;
+            text-decoration-thickness: 1px;
+            color: #94a3b8;
+        }
+
+        /* Settings View */
+        .settings-item {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 16px; background: white; border-radius: 12px; margin-bottom: 8px;
+            border: 1px solid #e2e8f0;
+        }
+        body.dark-mode .settings-item { background: #1e293b; border-color: #334155; }
+
+        .toggle-switch {
+            position: relative; width: 50px; height: 28px;
+        }
+        .toggle-switch input { opacity: 0; width: 0; height: 0; }
+        .slider {
+            position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #cbd5e1; transition: .4s; border-radius: 34px;
+        }
+        .slider:before {
+            position: absolute; content: ""; height: 20px; width: 20px;
+            left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #3b82f6; }
+        input:checked + .slider:before { transform: translateX(22px); }
+
+        /* Month View Styles */
+        .day-cell {
+            aspect-ratio: 1; display: flex; align-items: center; justify-content: center;
+            border-radius: 50%; font-size: 1rem; cursor: default;
+            color: #1e293b; border: 2px solid transparent;
+        }
+        .day-cell.active { background: #dbeafe; color: #1d4ed8; font-weight: 700; }
+        .day-cell.today { border-color: #3b82f6; }
+
+        body.dark-mode .day-cell { color: #94a3b8; }
+        body.dark-mode .day-cell.active { background: #1e3a8a; color: #93c5fd; }
+        body.dark-mode .day-cell.today { border-color: #60a5fa; color: #f1f5f9; }
+
+        /* Year View Styles */
+        .prog-track { background: #f1f5f9; height: 10px; border-radius: 5px; overflow: hidden; }
+        body.dark-mode .prog-track { background: #334155; }
+
         /* === DESKTOP LAYOUT (>= 1024px) === */
         @media (min-width: 1024px) {
             .gym-cont { 
@@ -203,15 +270,15 @@
 </head>
 <body>
     <div class="screen-content">
-        <!-- ZÁLOŽKA PLÁN -->
-        <div id="view-plan" class="gym-cont">
+        <!-- ZÁLOŽKA DEN (ex PLAN) -->
+        <div id="view-day" class="gym-cont">
             <div class="header-row">
-                <h1 class="gym-h1">Můj Plán</h1>
+                <h1 class="gym-h1">Dnes</h1>
                 <button class="edit-toggle" id="edit-btn" onclick="toggleEditMode()" title="Upravit plán">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
                 </button>
             </div>
-            <div class="gym-sub">Tvůj týdenní tréninkový program</div>
+            <div class="gym-sub">Tvůj dnešní trénink</div>
             
             <div class="gym-prog"><div id="gym-bar" class="gym-fill"></div></div>
             <div id="gym-text" style="text-align: center; font-size: 13px; margin-bottom: 24px; font-weight: 600;">0 / 0</div>
@@ -220,57 +287,58 @@
             <div id="edit-controls-main" style="display:none; text-align:center; margin-top:16px;">
                 <div class="add-btn" onclick="addCategory()" style="background: white; border: 2px dashed #94a3b8; color: #1e293b;">+ Přidat novou kategorii</div>
             </div>
-            
-            <div style="text-align: center; margin-top: 32px; color: #64748b; font-size: 0.9rem;">
-                Týden: <span id="current-week-date" style="font-weight: 700; color: #334155;"></span>
-            </div>
-            <div class="app-version" id="app-ver-display"></div>
         </div>
 
-        <!-- ZÁLOŽKA KALENDÁŘ -->
-        <div id="view-calendar" class="gym-cont" style="display: none;">
-            <!-- Generated by JS -->
-        </div>
-
-        <!-- ZÁLOŽKA HISTORIE -->
-        <div id="view-history" class="gym-cont" style="display: none;">
-            <h1 class="gym-h1">📜 Historie</h1>
-            <div class="gym-sub">Týden</div>
-
-            <div id="auth-section" style="margin-bottom: 16px; text-align: center; flex-shrink: 0;">
-                <div id="user-status" class="user-status">Načítání...</div>
-                <button onclick="loginGoogle()" class="google-btn" id="google-btn">
-                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
-                    Přihlásit přes Google
-                </button>
+        <!-- ZÁLOŽKA TÝDEN (ex HISTORY) -->
+        <div id="view-week" class="gym-cont" style="display: none;">
+            <h1 class="gym-h1">Týden</h1>
+            <div class="gym-sub">Přehled týdenní aktivity</div>
+            <div style="text-align: center; margin-bottom: 24px; color: #64748b; font-size: 0.9rem;">
+                <span id="current-week-date" style="font-weight: 700; color: #334155;"></span>
             </div>
-
             <div id="history-list"></div>
         </div>
 
-        <!-- ZÁLOŽKA GRAFY -->
-        <div id="view-charts" class="gym-cont" style="display: none;">
+        <!-- ZÁLOŽKA MĚSÍC (ex CALENDAR) -->
+        <div id="view-month" class="gym-cont" style="display: none;">
+            <!-- Generated by JS -->
+        </div>
+
+        <!-- ZÁLOŽKA ROK (ex CHARTS) -->
+        <div id="view-year" class="gym-cont" style="display: none;">
             <!-- Content generated by charts.js -->
+        </div>
+
+        <!-- ZÁLOŽKA NASTAVENÍ (NEW) -->
+        <div id="view-settings" class="gym-cont" style="display: none;">
+            <h1 class="gym-h1">Nastavení</h1>
+            <div class="gym-sub">Předvolby aplikace</div>
+            <div id="settings-list"></div>
+            <div class="app-version" id="app-ver-display"></div>
         </div>
     </div>
 
     <!-- SPODNÍ NAVIGACE -->
     <nav id="bottom-nav">
-        <div class="nav-item active" id="nav-btn-plan" onclick="switchTab('plan')">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Plán</span>
-        </div>
-        <div class="nav-item" id="nav-btn-history" onclick="switchTab('history')">
+        <div class="nav-item active" id="nav-btn-day" onclick="switchTab('day')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            <span>Historie</span>
+            <span>Den</span>
         </div>
-        <div class="nav-item" id="nav-btn-calendar" onclick="switchTab('calendar')">
+        <div class="nav-item" id="nav-btn-week" onclick="switchTab('week')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-            <span>Kalendář</span>
+            <span>Týden</span>
         </div>
-        <div class="nav-item" id="nav-btn-charts" onclick="switchTab('charts')">
+        <div class="nav-item" id="nav-btn-month" onclick="switchTab('month')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+            <span>Měsíc</span>
+        </div>
+        <div class="nav-item" id="nav-btn-year" onclick="switchTab('year')">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-            <span>Graf</span>
+            <span>Rok</span>
+        </div>
+        <div class="nav-item" id="nav-btn-settings" onclick="switchTab('settings')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+            <span>Nastavení</span>
         </div>
     </nav>
     

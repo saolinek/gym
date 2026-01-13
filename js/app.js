@@ -5,6 +5,7 @@ import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addIte
 import { renderHistory } from './history.js';
 import { renderCharts } from './charts.js';
 import { renderCalendar } from './calendar.js';
+import { renderSettings, applyTheme } from './settings.js';
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // === 1. GLOBAL BINDINGS (Exposed to window for HTML onclick) ===
@@ -22,7 +23,7 @@ window.renderApp = function () {
     if (!state.appReady) return;
 
     // View Switching
-    ['plan', 'history', 'charts', 'calendar'].forEach(t => {
+    ['day', 'week', 'month', 'year', 'settings'].forEach(t => {
         const v = document.getElementById('view-' + t);
         const b = document.getElementById('nav-btn-' + t);
         if (v) v.style.display = (t === state.activeView) ? 'block' : 'none';
@@ -33,10 +34,11 @@ window.renderApp = function () {
     });
 
     // Content Rendering
-    if (state.activeView === 'plan') renderPlan();
-    if (state.activeView === 'history') renderHistory();
-    if (state.activeView === 'charts') renderCharts();
-    if (state.activeView === 'calendar') renderCalendar();
+    if (state.activeView === 'day') renderPlan();
+    if (state.activeView === 'week') renderHistory();
+    if (state.activeView === 'year') renderCharts();
+    if (state.activeView === 'month') renderCalendar();
+    if (state.activeView === 'settings') renderSettings();
 };
 
 // === 3. NAVIGATION ===
@@ -52,6 +54,7 @@ function boot() {
 
     // A. Init Data State (Synchronous)
     initializeState();
+    applyTheme();
 
     // B. Init Firebase (Non-blocking Pointer Setup)
     const fb = initFirebase();

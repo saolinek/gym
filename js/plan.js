@@ -38,6 +38,21 @@ function getPrevWeekDoneList(currentWeekId) {
     return prevWeekCache.doneList;
 }
 
+function isToday(ts) {
+    if (!ts) return false;
+    const d = new Date(parseInt(ts));
+    const today = new Date();
+    return d.getDate() === today.getDate() &&
+           d.getMonth() === today.getMonth() &&
+           d.getFullYear() === today.getFullYear();
+}
+
+function triggerHaptic() {
+    if (state.settings && state.settings.haptics && navigator.vibrate) {
+        navigator.vibrate(15);
+    }
+}
+
 // === PURE RENDER FUNCTION ===
 export function renderPlan() {
     if (!state.appReady) return;
@@ -46,8 +61,7 @@ export function renderPlan() {
     if (!list) return;
 
     const weekData = state.weeks[state.currentWeekId];
-    // Support both old string format and new "id|timestamp" format
-    const doneList = weekData ? (weekData.done || []).map(entry => entry.split('|')[0]) : [];
+    const fullDoneList = weekData ? (weekData.done || []) : [];
 
     // === MEMOIZED PREVIOUS WEEK LOOKUP ===
     const prevDoneList = getPrevWeekDoneList(state.currentWeekId);
@@ -71,7 +85,13 @@ export function renderPlan() {
 
         c.items.forEach((i, itemIdx) => {
             let id = i.replace(/\s+/g, '_');
-            let isDone = doneList.includes(id);
+
+            // Check if done TODAY
+            let isDone = fullDoneList.some(entry => {
+                const parts = entry.split('|');
+                return parts[0] === id && parts[1] && isToday(parts[1]);
+            });
+
             if (isDone) doneCount++;
 
             // Check if missed last week (only if data exists for prev week)
@@ -117,28 +137,37 @@ export function togGym(id, el) {
     if (!state.weeks[state.currentWeekId]) return;
 
     const weekData = state.weeks[state.currentWeekId];
-    const timestamp = Date.now();
 
-    // Find if already done (independent of timestamp)
-    let existingEntry = weekData.done.find(entry => entry.split('|')[0] === id);
-    let idx = weekData.done.indexOf(existingEntry);
+    // Find today's entry
+    const todayEntry = weekData.done.find(entry => {
+        const parts = entry.split('|');
+        return parts[0] === id && parts[1] && isToday(parts[1]);
+    });
 
-    if (idx > -1) {
-        weekData.done.splice(idx, 1);
+    if (todayEntry) {
+        // Uncheck
+        const idx = weekData.done.indexOf(todayEntry);
+        if (idx > -1) weekData.done.splice(idx, 1);
         el.classList.remove('checked');
+        // No haptic on uncheck
     } else {
-        // Store with timestamp for daily history
-        weekData.done.push(`${id}|${timestamp}`);
+        // Check
+        weekData.done.push(`${id}|${Date.now()}`);
         el.classList.add('checked');
+        triggerHaptic(); // Haptic only on check
         spawnPart(el);
     }
 
     weekData.total = state.totalItems;
     saveCloudWeekData(state.currentWeekId);
 
-    // Use cached DOM elements
+    // Recalculate Day Progress
+    const doneCount = weekData.done.filter(entry => {
+        const parts = entry.split('|');
+        return parts[1] && isToday(parts[1]);
+    }).length;
+
     const { bar, text } = getDomElements();
-    const doneCount = weekData.done.length;
     if (bar) bar.style.width = (state.totalItems > 0 ? (doneCount / state.totalItems * 100) : 0) + '%';
     if (text) text.innerText = `${doneCount} / ${state.totalItems} hotovo`;
 }

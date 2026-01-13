@@ -1,69 +1,75 @@
-
 import { state } from './data.js';
 
 export function renderCharts() {
     if (!state.appReady) return;
-
-    const container = document.getElementById('view-charts');
+    const container = document.getElementById('view-year');
     if (!container) return;
 
-    // Filter and sort weeks (chronological for chart)
-    const weeks = Object.values(state.weeks).sort((a, b) => a.week - b.week);
+    const year = new Date().getFullYear();
+    const monthlyCounts = new Array(12).fill(0);
+
+    // Aggregate data
+    Object.values(state.weeks).forEach(week => {
+        if (!week.done) return;
+        week.done.forEach(entry => {
+            const parts = entry.split('|');
+            if (parts.length < 2) return;
+            const d = new Date(parseInt(parts[1]));
+            if (d.getFullYear() === year) {
+                monthlyCounts[d.getMonth()]++;
+            }
+        });
+    });
+
+    const maxCount = Math.max(...monthlyCounts, 10);
+
+    const monthNames = [
+        "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
+        "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"
+    ];
 
     let html = `
-        <h1 class="gym-h1" style="margin-bottom: 32px;">Vývoj aktivity</h1>
-        <div class="chart-box">
-            <div class="chart-title" style="margin-bottom: 24px;">Splněné cviky za týden</div>
-            <div id="main-chart-container"></div>
+        <div class="header-row">
+            <h1 class="gym-h1">Rok ${year}</h1>
+        </div>
+        <div class="gym-sub">Celkový přehled aktivity</div>
+
+        <div class="gym-cat" style="padding: 24px;">
+    `;
+
+    monthNames.forEach((name, idx) => {
+        const count = monthlyCounts[idx];
+        const pct = (count / maxCount) * 100;
+
+        const isFuture = idx > new Date().getMonth();
+        const opacity = isFuture ? 0.3 : 1;
+
+        // Use inline style for text color that works on white/dark or inherit
+        // But gym-cat has specific bg/color.
+        // Need to ensure text is visible. Inherit should work with dark mode classes.
+
+        html += `
+            <div style="margin-bottom: 16px; opacity: ${opacity};">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.9rem; font-weight: 600; opacity: 0.8;">
+                    <span>${name}</span>
+                    <span>${count}</span>
+                </div>
+                <div class="prog-track">
+                    <div style="height: 100%; width: ${pct}%; background: linear-gradient(90deg, #3b82f6, #8b5cf6); border-radius: 5px;"></div>
+                </div>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+
+    // Total for year
+    const totalYear = monthlyCounts.reduce((a, b) => a + b, 0);
+    html += `
+        <div style="text-align: center; opacity: 0.7; margin-top: 24px;">
+            Celkem v roce ${year}: <strong style="opacity: 1;">${totalYear}</strong> splněných položek
         </div>
     `;
 
     container.innerHTML = html;
-
-    const chartTarget = document.getElementById('main-chart-container');
-    if (weeks.length === 0) {
-        chartTarget.innerHTML = "<div style='text-align:center; padding:40px; color:#94a3b8;'>Zatím žádná data k zobrazení.</div>";
-        return;
-    }
-
-    // Generate Bar Chart SVG
-    const w = 300, h = 180; // Increased height for date ranges
-    const padding = { top: 25, right: 10, bottom: 45, left: 10 };
-    const chartW = w - padding.left - padding.right;
-    const chartH = h - padding.top - padding.bottom;
-
-    const barW = (chartW / weeks.length) * 0.6;
-    const gap = (chartW / weeks.length) * 0.4;
-    const maxVal = Math.max(...weeks.map(wk => wk.done ? wk.done.length : 0), 5);
-
-    let svg = `<svg viewBox="0 0 ${w} ${h}" style="width: 100%; height: auto; overflow: visible;">`;
-
-    weeks.forEach((wk, i) => {
-        const count = wk.done ? wk.done.length : 0;
-        const barH = (count / maxVal) * chartH;
-        const x = padding.left + i * (barW + gap) + gap / 2;
-        const y = h - padding.bottom - barH;
-
-        // Bar
-        svg += `<rect x="${x}" y="${y}" width="${barW}" height="${barH}" fill="#3b82f6" rx="4" />`;
-
-        // Date Range Label (Mon - Sun)
-        const mon = new Date(wk.week);
-        const sun = new Date(wk.week);
-        sun.setDate(mon.getDate() + 6);
-
-        const dateRange = `${mon.getDate()}.${mon.getMonth() + 1}.–${sun.getDate()}.${sun.getMonth() + 1}.`;
-
-        // Split label or rotate if needed, but here we'll try two lines or small font
-        svg += `<text x="${x + barW / 2}" y="${h - 25}" class="chart-label" style="font-size: 6.5px; fill: #94a3b8; text-anchor: middle;">${mon.getDate()}.${mon.getMonth() + 1}. –</text>`;
-        svg += `<text x="${x + barW / 2}" y="${h - 15}" class="chart-label" style="font-size: 6.5px; fill: #94a3b8; text-anchor: middle;">${sun.getDate()}.${sun.getMonth() + 1}.</text>`;
-
-        // Count Label
-        if (count > 0) {
-            svg += `<text x="${x + barW / 2}" y="${y - 8}" class="chart-label" style="font-size: 10px; font-weight: 900; fill: #1e293b; text-anchor: middle;">${count}</text>`;
-        }
-    });
-
-    svg += `</svg>`;
-    chartTarget.innerHTML = svg;
 }

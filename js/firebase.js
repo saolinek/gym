@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 import { state, saveLocalData, saveLocalPlan } from './data.js';
 
@@ -37,20 +37,25 @@ export { auth, db, firebaseInitialized };
 export function updateAuthUI(user) {
     const statusEl = document.getElementById('user-status');
     const btnEl = document.getElementById('google-btn');
+    const logoutBtn = document.getElementById('logout-btn');
+
     if (!statusEl || !btnEl) return;
 
     if (!firebaseInitialized) {
         statusEl.innerText = 'Offline režim';
         btnEl.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'none';
         return;
     }
 
     if (user && !user.isAnonymous) {
         statusEl.innerText = `👤 ${user.displayName || user.email}`;
         btnEl.style.display = 'none';
+        if (logoutBtn) logoutBtn.style.display = 'inline-flex';
     } else {
         statusEl.innerText = 'Lokální režim / Anonymní';
         btnEl.style.display = 'inline-flex';
+        if (logoutBtn) logoutBtn.style.display = 'none';
     }
 }
 
@@ -65,6 +70,16 @@ export async function loginGoogle() {
         } else if (e.code !== 'auth/popup-closed-by-user') {
             alert("Chyba přihlášení: " + e.message); 
         }
+    }
+}
+
+export async function logout() {
+    if (!firebaseInitialized || !auth) return;
+    try {
+        await signOut(auth);
+        window.location.reload(); // Reload to clear state/reset to anonymous
+    } catch (e) {
+        console.error("Logout failed", e);
     }
 }
 

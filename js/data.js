@@ -1,5 +1,6 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
+export const SETTINGS_KEY = "gym_settings_v1";
 export const APP_VERSION = "1.4.3"; // Version 1.4.3: Performance optimizations, DOM cache, service worker fix
 
 export const DEFAULT_PLAN = [
@@ -13,7 +14,7 @@ export const DEFAULT_PLAN = [
 export const state = {
     // System Flags
     appReady: false,
-    activeView: 'plan', // 'plan', 'history', 'charts'
+    activeView: 'day', // 'day', 'week', 'month', 'year', 'settings'
     version: APP_VERSION,
 
     // Data
@@ -24,6 +25,10 @@ export const state = {
     // Application Data
     plan: [],
     weeks: {},
+    settings: {
+        darkMode: false,
+        haptics: true
+    },
 
     // UI State
     isEditMode: false
@@ -65,6 +70,14 @@ export function initializeState() {
     } catch (e) {
         state.plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
     }
+
+    // C2. Load Settings
+    try {
+        const savedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (savedSettings) {
+            state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
+        }
+    } catch (e) {}
 
     // D. Calculate Derived State
     calcTotalItems();
@@ -130,5 +143,12 @@ export function saveLocalPlan() {
     if (!state.appReady) return;
     try {
         localStorage.setItem(PLAN_KEY, JSON.stringify(state.plan));
+    } catch (e) { }
+}
+
+export function saveLocalSettings() {
+    if (!state.appReady) return;
+    try {
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
     } catch (e) { }
 }
