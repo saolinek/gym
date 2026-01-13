@@ -4,6 +4,7 @@ import { initFirebase, loginGoogle, updateAuthUI, syncFromFirestore, firebaseIni
 import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory } from './plan.js';
 import { renderHistory } from './history.js';
 import { renderCharts } from './charts.js';
+import { renderCalendar } from './calendar.js';
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
 // === 1. GLOBAL BINDINGS (Exposed to window for HTML onclick) ===
@@ -17,13 +18,13 @@ window.renameCategory = renameCategory;
 window.loginGoogle = loginGoogle;
 
 // === 2. MAIN RENDER CONTROLLER ===
-window.renderApp = function() {
+window.renderApp = function () {
     if (!state.appReady) return;
 
     // View Switching
-    ['plan', 'history', 'charts'].forEach(t => {
-        const v = document.getElementById('view-'+t);
-        const b = document.getElementById('nav-btn-'+t);
+    ['plan', 'history', 'charts', 'calendar'].forEach(t => {
+        const v = document.getElementById('view-' + t);
+        const b = document.getElementById('nav-btn-' + t);
         if (v) v.style.display = (t === state.activeView) ? 'block' : 'none';
         if (b) {
             if (t === state.activeView) b.classList.add('active');
@@ -35,10 +36,11 @@ window.renderApp = function() {
     if (state.activeView === 'plan') renderPlan();
     if (state.activeView === 'history') renderHistory();
     if (state.activeView === 'charts') renderCharts();
+    if (state.activeView === 'calendar') renderCalendar();
 };
 
 // === 3. NAVIGATION ===
-window.switchTab = function(tabName) {
+window.switchTab = function (tabName) {
     if (!state.appReady) return;
     state.activeView = tabName;
     window.renderApp();
@@ -50,13 +52,13 @@ function boot() {
 
     // A. Init Data State (Synchronous)
     initializeState();
-    
+
     // B. Init Firebase (Non-blocking Pointer Setup)
     const fb = initFirebase();
 
     // C. Initial UI Render
     const verEl = document.getElementById('app-ver-display');
-    if(verEl) verEl.innerText = `v${state.version}`;
+    if (verEl) verEl.innerText = `v${state.version}`;
     window.renderApp();
 
     // D. Start Async Auth Sync
@@ -64,13 +66,13 @@ function boot() {
         onAuthStateChanged(fb.auth, async (user) => {
             state.currentUser = user;
             updateAuthUI(user);
-            
+
             if (user) {
                 await syncFromFirestore(user.uid);
                 initializeState(); // Re-init to merge cloud data & recalc totals
                 window.renderApp();
             } else {
-                signInAnonymously(fb.auth).catch(() => {});
+                signInAnonymously(fb.auth).catch(() => { });
             }
         });
     } else {

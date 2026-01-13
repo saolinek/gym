@@ -1,4 +1,5 @@
-const CACHE_NAME = 'gym-app-v1';
+const CACHE_VERSION = '1.4.3';
+const CACHE_NAME = `gym-app-v${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
@@ -10,10 +11,14 @@ const ASSETS_TO_CACHE = [
   './js/firebase.js',
   './js/plan.js',
   './js/history.js',
-  './js/charts.js'
+  './js/charts.js',
+  './js/calendar.js'
 ];
 
 self.addEventListener('install', (event) => {
+  // Force activation of new service worker
+  self.skipWaiting();
+
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then((cache) => {
@@ -23,54 +28,54 @@ self.addEventListener('install', (event) => {
 });
 
 self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  // Skip non-GET requests
+  if (request.method !== 'GET') return;
+
+  // Skip Firebase and external CDN requests - let them go to network
+  const url = new URL(request.url);
+  if (url.origin !== location.origin) {
+    return;
+  }
+
+  // Stale-while-revalidate for app assets
   event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Return cached response if found
-        if (response) {
-          return response;
-        }
-
-        // Clone the request for the network call
-        const fetchRequest = event.request.clone();
-
-        // If not in cache, fetch from network
-        return fetch(fetchRequest).then(
-          (response) => {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
-
-            // Clone the response to put in cache
-            const responseToCache = response.clone();
-
-            caches.open(CACHE_NAME)
-              .then((cache) => {
-                // Only cache if it's http/https (skip chrome-extension:// etc)
-                if (event.request.url.startsWith('http')) {
-                    cache.put(event.request, responseToCache);
-                }
-              });
-
-            return response;
+    caches.open(CACHE_NAME).then((cache) => {
+      return cache.match(request).then((cachedResponse) => {
+        const fetchPromise = fetch(request).then((networkResponse) => {
+          // Only cache valid responses
+          if (networkResponse && networkResponse.status === 200) {
+            cache.put(request, networkResponse.clone());
           }
-        );
-      })
+          return networkResponse;
+        }).catch(() => {
+          // Network failed, return cached or nothing
+          return cachedResponse;
+        });
+
+        // Return cached response immediately, update in background
+        return cachedResponse || fetchPromise;
+      });
+    })
   );
 });
 
 self.addEventListener('activate', (event) => {
-  const cacheWhitelist = [CACHE_NAME];
+  // Clean up old caches
   event.waitUntil(
     caches.keys().then((cacheNames) => {
       return Promise.all(
         cacheNames.map((cacheName) => {
-          if (cacheWhitelist.indexOf(cacheName) === -1) {
+          if (cacheName !== CACHE_NAME && cacheName.startsWith('gym-app-')) {
+            console.log('Deleting old cache:', cacheName);
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // Take control of all clients immediately
+      return self.clients.claim();
     })
   );
 });

@@ -1,0 +1,14 @@
+{
+  "name": "gym-app",
+  "version": "1.0.0",
+  "description": "Fitness tracking application",
+  "scripts": {
+    "start": "http-server . -c-1 -o"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}

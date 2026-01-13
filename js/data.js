@@ -1,6 +1,6 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
-export const APP_VERSION = "1.4.2"; // Version 1.4.2: Fixed scrolling & added 'Missed Last Week' indicator
+export const APP_VERSION = "1.4.3"; // Version 1.4.3: Performance optimizations, DOM cache, service worker fix
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -15,16 +15,16 @@ export const state = {
     appReady: false,
     activeView: 'plan', // 'plan', 'history', 'charts'
     version: APP_VERSION,
-    
+
     // Data
     currentUser: null,
     currentWeekId: "",
     totalItems: 0,
-    
+
     // Application Data
     plan: [],
     weeks: {},
-    
+
     // UI State
     isEditMode: false
 };
@@ -34,7 +34,7 @@ export const state = {
 export function getMondayTimestamp(d) {
     d = new Date(d);
     const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1); 
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
     d.setDate(diff);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
@@ -44,7 +44,7 @@ export function calcTotalItems() {
     state.totalItems = 0;
     if (state.plan && Array.isArray(state.plan)) {
         state.plan.forEach(c => {
-            if(c.items) state.totalItems += c.items.length;
+            if (c.items) state.totalItems += c.items.length;
         });
     }
 }
@@ -62,7 +62,7 @@ export function initializeState() {
     try {
         const savedPlan = localStorage.getItem(PLAN_KEY);
         state.plan = savedPlan ? JSON.parse(savedPlan) : JSON.parse(JSON.stringify(DEFAULT_PLAN));
-    } catch (e) { 
+    } catch (e) {
         state.plan = JSON.parse(JSON.stringify(DEFAULT_PLAN));
     }
 
@@ -78,7 +78,7 @@ export function initializeState() {
         } else {
             state.weeks = {};
         }
-    } catch (e) { 
+    } catch (e) {
         state.weeks = {};
     }
 
@@ -91,10 +91,10 @@ export function initializeState() {
         };
     }
     if (!state.weeks[state.currentWeekId].done) state.weeks[state.currentWeekId].done = [];
-    
+
     // G. Mark Ready
     state.appReady = true;
-    
+
     // H. Passive UI Update
     updateDateLabel();
 }
@@ -113,7 +113,7 @@ function updateDateLabel() {
     if (el && state.currentWeekId) {
         const d = new Date(parseInt(state.currentWeekId));
         const endD = new Date(d); endD.setDate(d.getDate() + 6);
-        el.innerText = `${d.getDate()}.${d.getMonth()+1}. – ${endD.getDate()}.${endD.getMonth()+1}.`;
+        el.innerText = `${d.getDate()}.${d.getMonth() + 1}. – ${endD.getDate()}.${endD.getMonth() + 1}.`;
     }
 }
 
@@ -123,12 +123,12 @@ export function saveLocalData() {
     if (!state.appReady) return;
     try {
         localStorage.setItem(LS_KEY, JSON.stringify({ weeks: state.weeks }));
-    } catch(e) {}
+    } catch (e) { }
 }
 
 export function saveLocalPlan() {
     if (!state.appReady) return;
     try {
         localStorage.setItem(PLAN_KEY, JSON.stringify(state.plan));
-    } catch(e) {}
+    } catch (e) { }
 }
