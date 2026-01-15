@@ -58,7 +58,7 @@ function isInCurrentWeek(ts) {
 
 function triggerHaptic() {
     if (state.settings && state.settings.haptics && navigator.vibrate) {
-        navigator.vibrate(15);
+        navigator.vibrate(8); // Short tap, not vibration
     }
 }
 
@@ -180,9 +180,8 @@ export function togGym(id, el) {
         el.classList.add('checked');
         // Trigger completion animation (removed after animation ends)
         el.classList.add('just-checked');
-        setTimeout(() => el.classList.remove('just-checked'), 300);
-        triggerHaptic(); // Haptic only on check
-        spawnPart(el);
+        setTimeout(() => el.classList.remove('just-checked'), 400);
+        triggerHaptic(); // Short tap feedback
     }
 
     weekData.total = state.totalItems;
