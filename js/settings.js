@@ -41,9 +41,6 @@ export function renderSettings() {
                 </button>
             </div>
 
-            <div class="settings-item" onclick="resetData()" style="color: #ef4444; justify-content: center; font-weight: 600; cursor: pointer;">
-                Vymazat data aplikace
-            </div>
         </div>
     `;
 
@@ -61,13 +58,6 @@ window.toggleDarkMode = function() {
 window.toggleHaptics = function() {
     state.settings.haptics = !state.settings.haptics;
     saveLocalSettings();
-};
-
-window.resetData = function() {
-    if (confirm("Opravdu smazat všechna lokální data? Pokud nejsi přihlášen(a), data budou ztracena.")) {
-        localStorage.clear();
-        location.reload();
-    }
 };
 
 window.logout = logout;

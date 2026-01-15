@@ -43,8 +43,17 @@ function isToday(ts) {
     const d = new Date(parseInt(ts));
     const today = new Date();
     return d.getDate() === today.getDate() &&
-           d.getMonth() === today.getMonth() &&
-           d.getFullYear() === today.getFullYear();
+        d.getMonth() === today.getMonth() &&
+        d.getFullYear() === today.getFullYear();
+}
+
+// Check if timestamp is within the current ISO week
+function isInCurrentWeek(ts) {
+    if (!ts) return false;
+    const weekStart = parseInt(state.currentWeekId);
+    const weekEnd = weekStart + (7 * 24 * 60 * 60 * 1000);
+    const timestamp = parseInt(ts);
+    return timestamp >= weekStart && timestamp < weekEnd;
 }
 
 function triggerHaptic() {
@@ -86,17 +95,17 @@ export function renderPlan() {
         c.items.forEach((i, itemIdx) => {
             let id = i.replace(/\s+/g, '_');
 
-            // Check if done TODAY
+            // Check if done ANY day this week (persists until week end)
             let isDone = fullDoneList.some(entry => {
                 const parts = entry.split('|');
-                return parts[0] === id && parts[1] && isToday(parts[1]);
+                return parts[0] === id && parts[1] && isInCurrentWeek(parts[1]);
             });
 
             if (isDone) doneCount++;
 
-            // Check if missed last week (only if data exists for prev week)
+            // Check if missed last week AND not already done this week (fixes double strikethrough)
             let missedLabel = "";
-            if (prevDoneList && !prevDoneList.includes(id)) {
+            if (prevDoneList && !prevDoneList.includes(id) && !isDone) {
                 missedLabel = `<span style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
             }
 
@@ -154,6 +163,9 @@ export function togGym(id, el) {
         // Check
         weekData.done.push(`${id}|${Date.now()}`);
         el.classList.add('checked');
+        // Trigger completion animation (removed after animation ends)
+        el.classList.add('just-checked');
+        setTimeout(() => el.classList.remove('just-checked'), 300);
         triggerHaptic(); // Haptic only on check
         spawnPart(el);
     }

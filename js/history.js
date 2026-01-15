@@ -15,12 +15,11 @@ function getCategoryLookupMap() {
     }
 
     const map = new Map();
+    // Include ALL categories (including OSTATNÍ) for weekly view display
     state.plan.forEach(c => {
-        if (c.cat !== "OSTATNÍ") {
-            c.items.forEach(item => {
-                map.set(item.replace(/\s+/g, '_'), c.cat);
-            });
-        }
+        c.items.forEach(item => {
+            map.set(item.replace(/\s+/g, '_'), c.cat);
+        });
     });
 
     categoryLookupCache.planVersion = planKey;

@@ -1,7 +1,7 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
 export const SETTINGS_KEY = "gym_settings_v1";
-export const APP_VERSION = "1.4.3"; // Version 1.4.3: Performance optimizations, DOM cache, service worker fix
+export const APP_VERSION = "1.4.4"; // Version 1.4.4: Task persistence fix, UX improvements, double strikethrough fix
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -77,7 +77,7 @@ export function initializeState() {
         if (savedSettings) {
             state.settings = { ...state.settings, ...JSON.parse(savedSettings) };
         }
-    } catch (e) {}
+    } catch (e) { }
 
     // D. Calculate Derived State
     calcTotalItems();
