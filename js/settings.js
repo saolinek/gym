@@ -89,7 +89,10 @@ window.closeHistoryEditor = function () {
 window.loadDateExercises = function () {
     const dateInput = document.getElementById('history-date');
     const container = document.getElementById('history-exercises');
-    const selectedDate = new Date(dateInput.value);
+    
+    // Parse date parts explicitly to avoid timezone issues
+    const [year, month, day] = dateInput.value.split('-').map(Number);
+    const selectedDate = new Date(year, month - 1, day, 12, 0, 0, 0);
 
     // Get the week ID for the selected date
     const weekId = getMondayTimestamp(selectedDate).toString();

@@ -46,11 +46,19 @@ export function renderHistory() {
         let dayActivityHtml = "";
 
         if (currentWeek) {
+            // Calculate exact date for this day in the current week
+            const weekStart = new Date(parseInt(state.currentWeekId));
+            const targetDate = new Date(weekStart);
+            targetDate.setDate(weekStart.getDate() + i); // i = 0 (Monday) to 6 (Sunday)
+
             const dayDone = (currentWeek.done || []).filter(entry => {
                 const parts = entry.split('|');
                 if (parts.length < 2) return false;
                 const d = new Date(parseInt(parts[1]));
-                return d.getDay() === dayIdx;
+                // Compare exact date, not just day of week
+                return d.getDate() === targetDate.getDate() &&
+                    d.getMonth() === targetDate.getMonth() &&
+                    d.getFullYear() === targetDate.getFullYear();
             });
 
             if (dayDone.length > 0) {
