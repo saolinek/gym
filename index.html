@@ -637,6 +637,118 @@
             background: #334155;
         }
 
+        /* === HISTORY EDITOR MODAL === */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 10001;
+            display: none;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 40px 16px;
+            overflow-y: auto;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 24px;
+            padding: 24px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        body.dark-mode .modal-content {
+            background: #1e293b;
+            color: #f1f5f9;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            font-weight: 800;
+            margin-bottom: 16px;
+            text-align: center;
+        }
+
+        .modal-date-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            font-size: 1rem;
+            margin-bottom: 16px;
+        }
+
+        body.dark-mode .modal-date-input {
+            background: #334155;
+            border-color: #475569;
+            color: #f1f5f9;
+        }
+
+        .history-cat-title {
+            font-weight: 700;
+            color: #64748b;
+            font-size: 0.85rem;
+            margin: 12px 0 8px;
+        }
+
+        .history-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: #f8fafc;
+            border-radius: 10px;
+            margin-bottom: 6px;
+            cursor: pointer;
+        }
+
+        body.dark-mode .history-item {
+            background: #334155;
+        }
+
+        .history-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            accent-color: #22c55e;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        .modal-btn-save {
+            background: #22c55e;
+            color: white;
+        }
+
+        .modal-btn-close {
+            background: #e2e8f0;
+            color: #475569;
+        }
+
+        body.dark-mode .modal-btn-close {
+            background: #475569;
+            color: #f1f5f9;
+        }
+
         /* === DESKTOP LAYOUT (>= 1024px) === */
         @media (min-width: 1024px) {
             .gym-cont {
@@ -792,6 +904,19 @@
             <span>Nastavení</span>
         </div>
     </nav>
+
+    <!-- HISTORY EDITOR MODAL -->
+    <div id="history-modal" class="modal-overlay" onclick="if(event.target === this) closeHistoryEditor()">
+        <div class="modal-content">
+            <div class="modal-title">Upravit historii</div>
+            <input type="date" id="history-date" class="modal-date-input" onchange="loadDateExercises()">
+            <div id="history-exercises"></div>
+            <div class="modal-buttons">
+                <button class="modal-btn modal-btn-save" onclick="saveHistoryEdit()">Uložit</button>
+                <button class="modal-btn modal-btn-close" onclick="closeHistoryEditor()">Zavřít</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module" src="js/app.js"></script>
     <script>

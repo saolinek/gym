@@ -1,7 +1,7 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
 export const SETTINGS_KEY = "gym_settings_v1";
-export const APP_VERSION = "1.5.0"; // Version 1.5.0: Day locking logic - past days are locked
+export const APP_VERSION = "1.6.0"; // Version 1.6.0: History editor - edit past days from settings
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
