@@ -1,5 +1,5 @@
 
-import { state, calcTotalItems, saveLocalPlan, saveLocalData } from './data.js';
+import { state, calcTotalItems, saveLocalPlan, saveLocalData, isDayLocked } from './data.js';
 import { saveCloudWeekData, saveCloudPlan } from './firebase.js';
 
 // === DOM CACHE (Performance optimization) ===
@@ -95,13 +95,23 @@ export function renderPlan() {
         c.items.forEach((i, itemIdx) => {
             let id = i.replace(/\s+/g, '_');
 
-            // Check if done ANY day this week (persists until week end)
-            let isDone = fullDoneList.some(entry => {
+            // Find if task is done this week and get timestamp
+            let doneEntry = fullDoneList.find(entry => {
                 const parts = entry.split('|');
                 return parts[0] === id && parts[1] && isInCurrentWeek(parts[1]);
             });
 
-            if (isDone) doneCount++;
+            let isDone = !!doneEntry;
+            let isLocked = false;
+
+            // Check if the completion is from today (unlocked) or past day (locked)
+            if (isDone && doneEntry) {
+                const timestamp = doneEntry.split('|')[1];
+                isLocked = isDayLocked(timestamp);
+            }
+
+            // Only count today's completions for progress
+            if (isDone && !isLocked) doneCount++;
 
             // Check if missed last week AND not already done this week (fixes double strikethrough)
             let missedLabel = "";
@@ -117,7 +127,12 @@ export function renderPlan() {
                     </div>
                 </div>`;
             } else {
-                html += `<div class="gym-item ${isDone ? 'checked' : ''}" onclick="togGym('${id}', this)">
+                // Locked items: checked + locked class, no onclick
+                // Unlocked items: normal interactive behavior
+                const itemClasses = isDone ? (isLocked ? 'checked locked' : 'checked') : '';
+                const clickHandler = isLocked ? '' : `onclick="togGym('${id}', this)"`;
+
+                html += `<div class="gym-item ${itemClasses}" ${clickHandler}>
                     <div class="gym-box"></div><span style="font-weight:500;">${i} ${missedLabel}</span>
                 </div>`;
             }

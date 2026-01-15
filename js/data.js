@@ -1,7 +1,7 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
 export const SETTINGS_KEY = "gym_settings_v1";
-export const APP_VERSION = "1.4.4"; // Version 1.4.4: Task persistence fix, UX improvements, double strikethrough fix
+export const APP_VERSION = "1.5.0"; // Version 1.5.0: Day locking logic - past days are locked
 
 export const DEFAULT_PLAN = [
     { cat: "ZÁDA", items: ["Přítahy vsedě", "Jednoruční přítahy", "Shrugs", "Deadlift"] },
@@ -43,6 +43,16 @@ export function getMondayTimestamp(d) {
     d.setDate(diff);
     d.setHours(0, 0, 0, 0);
     return d.getTime();
+}
+
+// Day is locked if it's not today (central locking logic)
+export function isDayLocked(timestamp) {
+    if (!timestamp) return true;
+    const taskDate = new Date(parseInt(timestamp));
+    const today = new Date();
+    return !(taskDate.getDate() === today.getDate() &&
+        taskDate.getMonth() === today.getMonth() &&
+        taskDate.getFullYear() === today.getFullYear());
 }
 
 export function calcTotalItems() {
