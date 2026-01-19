@@ -1,12 +1,27 @@
 import { state } from './data.js';
 
+// === VIEW STATE ===
+let viewedMonthOffset = 0; // 0 = current month, -1 = previous month, etc.
+
+// === NAVIGATION ===
+export function navigateMonth(direction) {
+    viewedMonthOffset += direction;
+    renderCalendar();
+}
+
+export function resetMonthOffset() {
+    viewedMonthOffset = 0;
+}
+
 export function renderCalendar() {
     const container = document.getElementById('view-month');
     if (!container) return;
 
+    // Calculate viewed month based on offset
     const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth(); // 0-11
+    const viewedDate = new Date(today.getFullYear(), today.getMonth() + viewedMonthOffset, 1);
+    const year = viewedDate.getFullYear();
+    const month = viewedDate.getMonth(); // 0-11
 
     const monthNames = [
         "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
@@ -32,10 +47,17 @@ export function renderCalendar() {
         });
     });
 
-    // --- 2. RENDER HEADER & SUMMARY ---
+    // Check if we're viewing a future month
+    const isCurrentMonth = viewedMonthOffset === 0;
+    const isFutureMonth = viewedMonthOffset > 0;
+    const canGoNext = !isFutureMonth || viewedMonthOffset < 0;
+
+    // --- 2. RENDER HEADER & NAVIGATION ---
     let html = `
-        <div class="header-row">
-            <h1 class="gym-h1">${monthNames[month]} ${year}</h1>
+        <div class="header-row" style="justify-content: center; gap: 16px;">
+            <button onclick="navigateMonth(-1)" style="background: none; border: none; cursor: pointer; padding: 8px 16px; font-size: 1.5rem; color: #3b82f6;">←</button>
+            <h1 class="gym-h1" style="min-width: 200px; text-align: center;">${monthNames[month]} ${year}</h1>
+            <button onclick="navigateMonth(1)" style="background: none; border: none; cursor: pointer; padding: 8px 16px; font-size: 1.5rem; color: #3b82f6; ${viewedMonthOffset >= 0 ? 'opacity: 0.3; cursor: default;' : ''}" ${viewedMonthOffset >= 0 ? 'disabled' : ''}>→</button>
         </div>
 
         <div style="display: flex; gap: 12px; margin-bottom: 32px;">
@@ -76,7 +98,7 @@ export function renderCalendar() {
     // Day cells
     for (let d = 1; d <= daysInMonth; d++) {
         const isActive = activeDays.has(d);
-        const isToday = (d === today.getDate());
+        const isToday = (d === today.getDate() && month === today.getMonth() && year === today.getFullYear());
 
         let cellClass = 'day-cell';
         if (isActive) cellClass += ' active';

@@ -2,9 +2,9 @@
 import { state, initializeState } from './data.js';
 import { initFirebase, loginGoogle, updateAuthUI, syncFromFirestore, firebaseInitialized } from './firebase.js';
 import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory } from './plan.js';
-import { renderHistory } from './history.js';
-import { renderCharts } from './charts.js';
-import { renderCalendar } from './calendar.js';
+import { renderHistory, navigateWeek } from './history.js';
+import { renderCharts, navigateYear } from './charts.js';
+import { renderCalendar, navigateMonth } from './calendar.js';
 import { renderSettings, applyTheme } from './settings.js';
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -17,6 +17,11 @@ window.addItem = addItem;
 window.deleteItem = deleteItem;
 window.renameCategory = renameCategory;
 window.loginGoogle = loginGoogle;
+
+// Navigation bindings
+window.navigateWeek = navigateWeek;
+window.navigateMonth = navigateMonth;
+window.navigateYear = navigateYear;
 
 // === 2. MAIN RENDER CONTROLLER ===
 window.renderApp = function () {
