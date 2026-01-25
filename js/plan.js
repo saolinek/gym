@@ -113,10 +113,12 @@ export function renderPlan() {
             // Only count today's completions for progress
             if (isDone && !isLocked) doneCount++;
 
-            // Check if missed last week AND not already done this week (fixes double strikethrough)
+            // Check if missed last week AND not already done this week
+            // isDone already checks if the task is done this week (via isInCurrentWeek)
             let missedLabel = "";
-            if (prevDoneList && !prevDoneList.includes(id) && !isDone) {
-                missedLabel = `<span style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
+            const isDoneThisWeek = fullDoneList.some(entry => entry.split('|')[0] === id);
+            if (prevDoneList && !prevDoneList.includes(id) && !isDoneThisWeek) {
+                missedLabel = `<span class="missed-label" style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
             }
 
             if (state.isEditMode) {
@@ -196,6 +198,33 @@ export function togGym(id, el) {
     const { bar, text } = getDomElements();
     if (bar) bar.style.width = (state.totalItems > 0 ? (doneCount / state.totalItems * 100) : 0) + '%';
     if (text) text.innerText = `${doneCount} / ${state.totalItems} hotovo`;
+
+    // Handle "Minule vynecháno" label visibility
+    const prevDoneList = getPrevWeekDoneList(state.currentWeekId);
+    const isMissedLastWeek = prevDoneList && !prevDoneList.includes(id);
+
+    if (isMissedLastWeek) {
+        // Check if done ANY time this week (including the change we just made)
+        const isDoneAnyTimeThisWeek = weekData.done.some(entry => entry.split('|')[0] === id);
+
+        const labelSpan = el.querySelector('.missed-label');
+
+        if (isDoneAnyTimeThisWeek) {
+            // Should be hidden because it is now done
+            if (labelSpan) labelSpan.style.display = 'none';
+        } else {
+            // Should be visible because it is NOT done
+            if (labelSpan) {
+                labelSpan.style.display = 'inline';
+            } else {
+                // If it was hidden/removed and needs to be re-added
+                const textSpan = el.querySelector('span[style*="font-weight:500"]');
+                if (textSpan) {
+                    textSpan.insertAdjacentHTML('beforeend', `<span class="missed-label" style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`);
+                }
+            }
+        }
+    }
 }
 
 export function toggleEditMode() {

@@ -6,16 +6,24 @@ export function renderSettings() {
     const container = document.getElementById('settings-list');
     if (!container) return;
 
+    const currentTheme = state.settings.theme || 'material';
+
     container.innerHTML = `
         <div class="settings-section">
             <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">VZHLED A CHOVÁNÍ</h3>
 
-            <div class="settings-item">
-                <span style="font-weight: 500;">Tmavý režim</span>
-                <label class="toggle-switch">
-                    <input type="checkbox" id="toggle-dark-mode" ${state.settings.darkMode ? 'checked' : ''} onchange="toggleDarkMode()">
-                    <span class="slider"></span>
-                </label>
+            <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 12px;">
+                <span style="font-weight: 500;">Vzhled aplikace</span>
+                <div class="theme-switcher">
+                    <button class="theme-btn ${currentTheme === 'material' ? 'active' : ''}" onclick="setTheme('material')">
+                        <span class="theme-icon">🎨</span>
+                        <span>Material You</span>
+                    </button>
+                    <button class="theme-btn ${currentTheme === 'liquid' ? 'active' : ''}" onclick="setTheme('liquid')">
+                        <span class="theme-icon">💧</span>
+                        <span>Liquid Glass</span>
+                    </button>
+                </div>
             </div>
 
             <div class="settings-item">
@@ -56,10 +64,11 @@ export function renderSettings() {
 }
 
 // Global functions for onclick
-window.toggleDarkMode = function () {
-    state.settings.darkMode = !state.settings.darkMode;
+window.setTheme = function (themeName) {
+    state.settings.theme = themeName;
     applyTheme();
     saveLocalSettings();
+    renderSettings(); // Re-render to update active state
 };
 
 window.toggleHaptics = function () {
@@ -89,7 +98,7 @@ window.closeHistoryEditor = function () {
 window.loadDateExercises = function () {
     const dateInput = document.getElementById('history-date');
     const container = document.getElementById('history-exercises');
-    
+
     // Parse date parts explicitly to avoid timezone issues
     const [year, month, day] = dateInput.value.split('-').map(Number);
     const selectedDate = new Date(year, month - 1, day, 12, 0, 0, 0);
@@ -180,9 +189,11 @@ window.saveHistoryEdit = function () {
 };
 
 export function applyTheme() {
-    if (state.settings.darkMode) {
-        document.body.classList.add('dark-mode');
-    } else {
-        document.body.classList.remove('dark-mode');
-    }
+    const theme = state.settings.theme || 'material';
+
+    // Remove both theme classes first
+    document.body.classList.remove('theme-material', 'theme-liquid');
+
+    // Apply the selected theme
+    document.body.classList.add(`theme-${theme}`);
 }

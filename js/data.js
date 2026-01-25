@@ -26,7 +26,7 @@ export const state = {
     plan: [],
     weeks: {},
     settings: {
-        darkMode: false,
+        theme: 'material', // 'material' or 'liquid'
         haptics: true
     },
 
