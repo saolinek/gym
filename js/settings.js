@@ -27,6 +27,14 @@ export function renderSettings() {
             </div>
 
             <div class="settings-item">
+                <span style="font-weight: 500;">Tmavý režim</span>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="toggle-darkmode" ${state.settings.darkMode ? 'checked' : ''} onchange="toggleDarkMode()">
+                    <span class="slider"></span>
+                </label>
+            </div>
+
+            <div class="settings-item">
                 <span style="font-weight: 500;">Vibrace</span>
                 <label class="toggle-switch">
                     <input type="checkbox" id="toggle-haptics" ${state.settings.haptics ? 'checked' : ''} onchange="toggleHaptics()">
@@ -73,6 +81,12 @@ window.setTheme = function (themeName) {
 
 window.toggleHaptics = function () {
     state.settings.haptics = !state.settings.haptics;
+    saveLocalSettings();
+};
+
+window.toggleDarkMode = function () {
+    state.settings.darkMode = !state.settings.darkMode;
+    applyTheme();
     saveLocalSettings();
 };
 
@@ -190,10 +204,20 @@ window.saveHistoryEdit = function () {
 
 export function applyTheme() {
     const theme = state.settings.theme || 'material';
+    const isDark = state.settings.darkMode;
 
-    // Remove both theme classes first
-    document.body.classList.remove('theme-material', 'theme-liquid');
+    // Remove theme classes
+    document.body.classList.remove('theme-material', 'theme-liquid', 'dark-mode');
 
-    // Apply the selected theme
+    // Apply basic theme
     document.body.classList.add(`theme-${theme}`);
+
+    // Apply Dark Mode if active
+    if (isDark) {
+        document.body.classList.add('dark-mode');
+        // Update meta theme color
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0f172a');
+    } else {
+        document.querySelector('meta[name="theme-color"]').setAttribute('content', '#a1c4fd');
+    }
 }
