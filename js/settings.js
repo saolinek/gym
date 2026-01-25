@@ -12,19 +12,7 @@ export function renderSettings() {
         <div class="settings-section">
             <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">VZHLED A CHOVÁNÍ</h3>
 
-            <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 12px;">
-                <span style="font-weight: 500;">Vzhled aplikace</span>
-                <div class="theme-switcher">
-                    <button class="theme-btn ${currentTheme === 'material' ? 'active' : ''}" onclick="setTheme('material')">
-                        <span class="theme-icon">🎨</span>
-                        <span>Material You</span>
-                    </button>
-                    <button class="theme-btn ${currentTheme === 'liquid' ? 'active' : ''}" onclick="setTheme('liquid')">
-                        <span class="theme-icon">💧</span>
-                        <span>Liquid Glass</span>
-                    </button>
-                </div>
-            </div>
+
 
             <div class="settings-item">
                 <span style="font-weight: 500;">Tmavý režim</span>
@@ -72,12 +60,7 @@ export function renderSettings() {
 }
 
 // Global functions for onclick
-window.setTheme = function (themeName) {
-    state.settings.theme = themeName;
-    applyTheme();
-    saveLocalSettings();
-    renderSettings(); // Re-render to update active state
-};
+
 
 window.toggleHaptics = function () {
     state.settings.haptics = !state.settings.haptics;
@@ -203,7 +186,7 @@ window.saveHistoryEdit = function () {
 };
 
 export function applyTheme() {
-    const theme = state.settings.theme || 'material';
+    const theme = 'material';
     const isDark = state.settings.darkMode;
 
     // Remove theme classes
