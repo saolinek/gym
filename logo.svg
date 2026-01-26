@@ -1,43 +1,18 @@
-<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Background Squircle with Gradient -->
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
   <defs>
-    <linearGradient id="bg_grad" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#a1c4fd" />
-      <stop offset="100%" stop-color="#c2e9fb" />
+    <linearGradient id="bg" x1="0" y1="0" x2="512" y2="512" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#a1c4fd"/>
+      <stop offset="100%" stop-color="#c2e9fb"/>
     </linearGradient>
-    
-    <linearGradient id="barbell_grad" x1="120" y1="120" x2="392" y2="392" gradientUnits="userSpaceOnUse">
-      <stop offset="0%" stop-color="#3b82f6" />
-      <stop offset="100%" stop-color="#8b5cf6" />
+    <linearGradient id="accent" x1="120" y1="120" x2="392" y2="392" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#3b82f6"/>
+      <stop offset="100%" stop-color="#8b5cf6"/>
     </linearGradient>
-
-    <filter id="glass" x="-20%" y="-20%" width="140%" height="140%" filterUnits="objectBoundingBox">
-      <feGaussianBlur in="SourceAlpha" stdDeviation="15" result="blur" />
-      <feOffset in="blur" dx="0" dy="10" result="offsetBlur" />
-      <feComponentTransfer in="offsetBlur" result="shadow">
-        <feFuncA type="linear" slope="0.3" />
-      </feComponentTransfer>
-      <feMerge>
-        <feMergeNode in="shadow" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
   </defs>
-
-  <!-- Squircle Background -->
-  <path d="M128 0C57.3 0 0 57.3 0 128V384C0 454.7 57.3 512 128 512H384C454.7 512 512 454.7 512 384V128C512 57.3 454.7 0 384 0H128Z" fill="url(#bg_grad)"/>
-
-  <!-- Stylized Barbell -->
-  <g filter="url(#glass)">
-    <!-- Main Bar -->
-    <rect x="140" y="240" width="232" height="32" rx="16" fill="white" fill-opacity="0.8" />
-    
-    <!-- Left Weights -->
-    <rect x="100" y="160" width="40" height="192" rx="20" fill="url(#barbell_grad)" />
-    <rect x="80" y="200" width="20" height="112" rx="10" fill="url(#barbell_grad)" opacity="0.6" />
-    
-    <!-- Right Weights -->
-    <rect x="372" y="160" width="40" height="192" rx="20" fill="url(#barbell_grad)" />
-    <rect x="412" y="200" width="20" height="112" rx="10" fill="url(#barbell_grad)" opacity="0.6" />
-  </g>
+  <rect x="0" y="0" width="512" height="512" rx="128" fill="url(#bg)"/>
+  <!-- Bar -->
+  <rect x="156" y="244" width="200" height="24" rx="12" fill="#ffffff" fill-opacity="0.9"/>
+  <!-- Weights -->
+  <rect x="116" y="176" width="48" height="160" rx="16" fill="url(#accent)"/>
+  <rect x="348" y="176" width="48" height="160" rx="16" fill="url(#accent)"/>
 </svg>
