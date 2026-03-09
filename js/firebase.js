@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
 import { getAuth, signInAnonymously, onAuthStateChanged, GoogleAuthProvider, signInWithPopup, signOut } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-import { state, saveLocalData, saveLocalPlan } from './data.js';
+import { state, saveLocalData, saveLocalPlan, normalizeStoredData } from './data.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyD6-Sn9kM_Pnj1SxTmDT82H3C6kqAqS_ig",
@@ -89,18 +89,32 @@ export async function syncFromFirestore(uid) {
     try {
         const planRef = doc(db, "users", uid, "settings", "plan");
         const planSnap = await getDoc(planRef);
-        if (planSnap.exists()) {
-            state.plan = planSnap.data().plan;
-            saveLocalPlan();
-        } else {
-            await saveCloudPlan();
-        }
-
         const weeksRef = collection(db, "users", uid, "weeks");
         const snapshot = await getDocs(weeksRef);
+        const remoteWeeks = {};
         if (!snapshot.empty) {
-            snapshot.forEach(doc => { state.weeks[doc.id] = doc.data(); });
-            saveLocalData();
+            snapshot.forEach(weekDoc => { remoteWeeks[weekDoc.id] = weekDoc.data(); });
+        }
+
+        const remotePlan = planSnap.exists() ? planSnap.data().plan : state.plan;
+        const normalizedData = normalizeStoredData(remotePlan, remoteWeeks);
+
+        state.plan = normalizedData.plan;
+        state.weeks = { ...state.weeks, ...normalizedData.weeks };
+
+        saveLocalPlan();
+        saveLocalData();
+
+        if (!planSnap.exists() || normalizedData.planChanged) {
+            await setDoc(planRef, { plan: state.plan }, { merge: true });
+        }
+
+        if (normalizedData.weeksChanged) {
+            await Promise.all(
+                Object.entries(normalizedData.weeks).map(([weekId, weekData]) =>
+                    setDoc(doc(db, "users", uid, "weeks", weekId), weekData, { merge: true })
+                )
+            );
         }
     } catch (e) {}
 }

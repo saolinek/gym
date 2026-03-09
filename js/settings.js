@@ -1,4 +1,12 @@
-import { state, saveLocalSettings, saveLocalData, getMondayTimestamp } from './data.js';
+import {
+    state,
+    saveLocalSettings,
+    saveLocalData,
+    getMondayTimestamp,
+    getCategoryName,
+    getExerciseId,
+    getExerciseName
+} from './data.js';
 import { loginGoogle, logout, updateAuthUI, saveCloudWeekData } from './firebase.js';
 
 export function renderSettings() {
@@ -109,10 +117,11 @@ window.loadDateExercises = function () {
     let html = '';
 
     state.plan.forEach(category => {
-        html += `<div class="history-cat-title">${category.cat}</div>`;
+        html += `<div class="history-cat-title">${getCategoryName(category)}</div>`;
 
         category.items.forEach(item => {
-            const id = item.replace(/\s+/g, '_');
+            const id = getExerciseId(item);
+            const itemName = getExerciseName(item);
 
             // Check if this exercise was done on the selected date
             const isDone = doneList.some(entry => {
@@ -127,7 +136,7 @@ window.loadDateExercises = function () {
             html += `
                 <label class="history-item">
                     <input type="checkbox" data-id="${id}" ${isDone ? 'checked' : ''}>
-                    <span>${item}</span>
+                    <span>${itemName}</span>
                 </label>
             `;
         });

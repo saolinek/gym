@@ -1,4 +1,4 @@
-import { state, getMondayTimestamp } from './data.js';
+import { state, getMondayTimestamp, getCategoryName, getExerciseId } from './data.js';
 
 // === VIEW STATE ===
 let viewedWeekOffset = 0; // 0 = current week, -1 = previous week, etc.
@@ -21,8 +21,13 @@ let categoryLookupCache = {
 };
 
 function getCategoryLookupMap() {
-    // Rebuild map only if plan changed (simple version check via length + first item)
-    const planKey = state.plan.length + (state.plan[0]?.cat || '');
+    const planKey = JSON.stringify(
+        state.plan.map(category => ({
+            id: category.id,
+            name: getCategoryName(category),
+            items: (category.items || []).map(item => getExerciseId(item))
+        }))
+    );
 
     if (categoryLookupCache.planVersion === planKey && categoryLookupCache.map) {
         return categoryLookupCache.map;
@@ -32,7 +37,7 @@ function getCategoryLookupMap() {
     // Include ALL categories (including OSTATNÍ) for weekly view display
     state.plan.forEach(c => {
         c.items.forEach(item => {
-            map.set(item.replace(/\s+/g, '_'), c.cat);
+            map.set(getExerciseId(item), getCategoryName(c));
         });
     });
 
@@ -118,6 +123,8 @@ export function renderHistory() {
                     }
 
                     dayActivityHtml = `<span style="margin-left: auto; font-weight: 800; color: #3b82f6;">${dayDone.length} ${prevailingCat}</span>`;
+                } else {
+                    dayActivityHtml = `<span style="margin-left: auto; font-weight: 800; color: #64748b;">${dayDone.length} Historie</span>`;
                 }
             }
         }

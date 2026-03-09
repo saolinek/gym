@@ -1,5 +1,14 @@
 
-import { state, calcTotalItems, saveLocalPlan, saveLocalData, isDayLocked } from './data.js';
+import {
+    state,
+    calcTotalItems,
+    isDayLocked,
+    createCategory,
+    createExercise,
+    getCategoryName,
+    getExerciseId,
+    getExerciseName
+} from './data.js';
 import { saveCloudWeekData, saveCloudPlan } from './firebase.js';
 
 // === DOM CACHE (Performance optimization) ===
@@ -79,10 +88,11 @@ export function renderPlan() {
     let doneCount = 0;
 
     state.plan.forEach((c, catIdx) => {
+        const categoryName = getCategoryName(c);
         html += `<div class="gym-cat">`;
 
         html += `<div class="cat-header">
-                    <h2 style="font-weight:800; margin:0; font-size:1.25rem; flex-grow:1;" ${state.isEditMode ? `onclick="renameCategory(${catIdx})"` : ''}>${c.cat}</h2>
+                    <h2 style="font-weight:800; margin:0; font-size:1.25rem; flex-grow:1;" ${state.isEditMode ? `onclick="renameCategory(${catIdx})"` : ''}>${categoryName}</h2>
                     ${state.isEditMode ? `
                         <div class="edit-controls">
                             <div class="icon-btn del-btn" onclick="deleteCategory(${catIdx})">
@@ -93,12 +103,13 @@ export function renderPlan() {
                  </div>`;
 
         c.items.forEach((i, itemIdx) => {
-            let id = i.replace(/\s+/g, '_');
+            const exerciseId = getExerciseId(i);
+            const exerciseName = getExerciseName(i);
 
             // Find if task is done this week and get timestamp
             let doneEntry = fullDoneList.find(entry => {
                 const parts = entry.split('|');
-                return parts[0] === id && parts[1] && isInCurrentWeek(parts[1]);
+                return parts[0] === exerciseId && parts[1] && isInCurrentWeek(parts[1]);
             });
 
             let isDone = !!doneEntry;
@@ -116,14 +127,14 @@ export function renderPlan() {
             // Check if missed last week AND not already done this week
             // isDone already checks if the task is done this week (via isInCurrentWeek)
             let missedLabel = "";
-            const isDoneThisWeek = fullDoneList.some(entry => entry.split('|')[0] === id);
-            if (prevDoneList && !prevDoneList.includes(id) && !isDoneThisWeek) {
+            const isDoneThisWeek = fullDoneList.some(entry => entry.split('|')[0] === exerciseId);
+            if (prevDoneList && !prevDoneList.includes(exerciseId) && !isDoneThisWeek) {
                 missedLabel = `<span class="missed-label" style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
             }
 
             if (state.isEditMode) {
                 html += `<div class="gym-item" style="cursor: default;">
-                    <span style="font-weight:500; flex-grow:1;">${i}</span>
+                    <span style="font-weight:500; flex-grow:1; cursor:pointer;" onclick="renameItem(${catIdx}, ${itemIdx})">${exerciseName}</span>
                     <div class="icon-btn del-btn" onclick="deleteItem(${catIdx}, ${itemIdx})">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
                     </div>
@@ -132,10 +143,10 @@ export function renderPlan() {
                 // Locked items: checked + locked class, no onclick
                 // Unlocked items: normal interactive behavior
                 const itemClasses = isDone ? (isLocked ? 'checked locked' : 'checked') : '';
-                const clickHandler = isLocked ? '' : `onclick="togGym('${id}', this)"`;
+                const clickHandler = isLocked ? '' : `onclick="togGym('${exerciseId}', this)"`;
 
                 html += `<div class="gym-item ${itemClasses}" ${clickHandler}>
-                    <div class="gym-box"></div><span style="font-weight:500;">${i} ${missedLabel}</span>
+                    <div class="gym-box"></div><span style="font-weight:500;">${exerciseName} ${missedLabel}</span>
                 </div>`;
             }
         });
@@ -244,8 +255,9 @@ export function toggleEditMode() {
 
 export function addCategory() {
     const name = prompt("Název nové kategorie:");
-    if (name) {
-        state.plan.push({ cat: name, items: [] });
+    const trimmedName = String(name || '').trim();
+    if (trimmedName) {
+        state.plan.push(createCategory(trimmedName));
         calcTotalItems();
         saveCloudPlan();
         triggerAppRender();
@@ -253,7 +265,7 @@ export function addCategory() {
 }
 
 export function deleteCategory(idx) {
-    if (confirm(`Opravdu smazat kategorii "${state.plan[idx].cat}"?`)) {
+    if (confirm(`Opravdu smazat kategorii "${getCategoryName(state.plan[idx])}"?`)) {
         state.plan.splice(idx, 1);
         calcTotalItems();
         saveCloudPlan();
@@ -263,8 +275,9 @@ export function deleteCategory(idx) {
 
 export function addItem(catIdx) {
     const name = prompt("Název nového cviku:");
-    if (name) {
-        state.plan[catIdx].items.push(name);
+    const trimmedName = String(name || '').trim();
+    if (trimmedName) {
+        state.plan[catIdx].items.push(createExercise(trimmedName));
         calcTotalItems();
         saveCloudPlan();
         triggerAppRender();
@@ -279,9 +292,23 @@ export function deleteItem(catIdx, itemIdx) {
 }
 
 export function renameCategory(catIdx) {
-    const newName = prompt("Nový název kategorie:", state.plan[catIdx].cat);
-    if (newName) {
-        state.plan[catIdx].cat = newName;
+    const newName = prompt("Nový název kategorie:", getCategoryName(state.plan[catIdx]));
+    const trimmedName = String(newName || '').trim();
+    if (trimmedName) {
+        state.plan[catIdx].name = trimmedName;
+        saveCloudPlan();
+        triggerAppRender();
+    }
+}
+
+export function renameItem(catIdx, itemIdx) {
+    const currentExercise = state.plan[catIdx]?.items?.[itemIdx];
+    if (!currentExercise) return;
+
+    const newName = prompt("Nový název cviku:", getExerciseName(currentExercise));
+    const trimmedName = String(newName || '').trim();
+    if (trimmedName) {
+        state.plan[catIdx].items[itemIdx].name = trimmedName;
         saveCloudPlan();
         triggerAppRender();
     }

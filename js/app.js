@@ -1,7 +1,7 @@
 
 import { state, initializeState } from './data.js';
 import { initFirebase, loginGoogle, updateAuthUI, syncFromFirestore, firebaseInitialized } from './firebase.js';
-import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory } from './plan.js';
+import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory, renameItem } from './plan.js';
 import { renderHistory, navigateWeek } from './history.js';
 import { renderCharts, navigateYear } from './charts.js';
 import { renderCalendar, navigateMonth } from './calendar.js';
@@ -16,6 +16,7 @@ window.deleteCategory = deleteCategory;
 window.addItem = addItem;
 window.deleteItem = deleteItem;
 window.renameCategory = renameCategory;
+window.renameItem = renameItem;
 window.loginGoogle = loginGoogle;
 
 // Navigation bindings
