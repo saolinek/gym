@@ -41,6 +41,13 @@ function getCategoryLookupMap() {
         });
     });
 
+    // Include deleted exercises so they still appear in history
+    Object.entries(state.deletedExercises).forEach(([id, info]) => {
+        if (!map.has(id)) {
+            map.set(id, info.category || 'Smazané');
+        }
+    });
+
     categoryLookupCache.planVersion = planKey;
     categoryLookupCache.map = map;
     return map;

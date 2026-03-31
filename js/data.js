@@ -1,6 +1,7 @@
 export const LS_KEY = "gym_history_v1";
 export const PLAN_KEY = "gym_plan_v1";
 export const SETTINGS_KEY = "gym_settings_v1";
+export const DELETED_KEY = "gym_deleted_exercises_v1";
 export const PLAN_BACKUP_KEY = "gym_plan_v1_legacy_backup";
 export const HISTORY_BACKUP_KEY = "gym_history_v1_legacy_backup";
 export const APP_VERSION = "1.7.0"; // Version 1.7.0: Stable exercise/category IDs with legacy data migration
@@ -62,6 +63,7 @@ export const state = {
     // Application Data
     plan: [],
     weeks: {},
+    deletedExercises: {}, // { exerciseId: { name, category } }
     settings: {
         theme: 'material', // 'material' or 'liquid'
         darkMode: false,
@@ -336,7 +338,10 @@ export function initializeState() {
     }
     if (!state.weeks[state.currentWeekId].done) state.weeks[state.currentWeekId].done = [];
 
-    // G. Mark Ready
+    // G. Load Deleted Exercises Registry
+    loadLocalDeletedExercises();
+
+    // H. Mark Ready
     state.appReady = true;
 
     // H. Passive UI Update
@@ -359,6 +364,28 @@ function updateDateLabel() {
         const endD = new Date(d); endD.setDate(d.getDate() + 6);
         el.innerText = `${d.getDate()}.${d.getMonth() + 1}. – ${endD.getDate()}.${endD.getMonth() + 1}.`;
     }
+}
+
+// === DELETED EXERCISES REGISTRY ===
+
+export function registerDeletedExercise(exerciseId, exerciseName, categoryName) {
+    state.deletedExercises[exerciseId] = { name: exerciseName, category: categoryName };
+    saveLocalDeletedExercises();
+}
+
+function saveLocalDeletedExercises() {
+    try {
+        localStorage.setItem(DELETED_KEY, JSON.stringify(state.deletedExercises));
+    } catch (e) { }
+}
+
+function loadLocalDeletedExercises() {
+    try {
+        const saved = localStorage.getItem(DELETED_KEY);
+        if (saved) {
+            state.deletedExercises = JSON.parse(saved);
+        }
+    } catch (e) { }
 }
 
 // === 4. PERSISTENCE ===

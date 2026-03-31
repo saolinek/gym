@@ -7,7 +7,8 @@ import {
     createExercise,
     getCategoryName,
     getExerciseId,
-    getExerciseName
+    getExerciseName,
+    registerDeletedExercise
 } from './data.js';
 import { saveCloudWeekData, saveCloudPlan } from './firebase.js';
 
@@ -42,7 +43,7 @@ function getPrevWeekDoneList(currentWeekId) {
     prevWeekCache.weekId = currentWeekId;
     prevWeekCache.doneList = prevWeekData
         ? (prevWeekData.done || []).map(entry => entry.split('|')[0])
-        : null;
+        : [];
 
     return prevWeekCache.doneList;
 }
@@ -265,7 +266,12 @@ export function addCategory() {
 }
 
 export function deleteCategory(idx) {
-    if (confirm(`Opravdu smazat kategorii "${getCategoryName(state.plan[idx])}"?`)) {
+    const category = state.plan[idx];
+    if (confirm(`Opravdu smazat kategorii "${getCategoryName(category)}"?`)) {
+        const catName = getCategoryName(category);
+        (category.items || []).forEach(item => {
+            registerDeletedExercise(getExerciseId(item), getExerciseName(item), catName);
+        });
         state.plan.splice(idx, 1);
         calcTotalItems();
         saveCloudPlan();
@@ -285,6 +291,9 @@ export function addItem(catIdx) {
 }
 
 export function deleteItem(catIdx, itemIdx) {
+    const item = state.plan[catIdx].items[itemIdx];
+    const catName = getCategoryName(state.plan[catIdx]);
+    registerDeletedExercise(getExerciseId(item), getExerciseName(item), catName);
     state.plan[catIdx].items.splice(itemIdx, 1);
     calcTotalItems();
     saveCloudPlan();
