@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Statistiky | Gym</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            min-height: 100dvh;
+            color: #1e293b;
+        }
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+        }
+        .progress-bar {
+            height: 10px;
+            border-radius: 10px;
+            background: #f1f5f9;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeIn 0.5s ease-out both; }
+        .animate-in-delay { animation: fadeIn 0.5s ease-out 0.15s both; }
+    </style>
+</head>
+<body>
+    <div id="app" class="max-w-xl mx-auto px-5 py-8 pb-6">
+        <!-- Back button -->
+        <a href="./" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 mb-5 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Zpět
+        </a>
+
+        <h1 class="text-2xl font-extrabold text-slate-900 mb-5">Statistiky</h1>
+
+        <!-- Empty state -->
+        <div id="empty" class="hidden card text-center py-16">
+            <div class="text-4xl mb-3">📊</div>
+            <p class="text-slate-500 font-medium">Zatím žádná data</p>
+        </div>
+
+        <!-- Stats content -->
+        <div id="content" class="hidden space-y-4">
+            <!-- Summary card -->
+            <div id="summary" class="card animate-in">
+                <div class="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                        <div id="totalCount" class="text-2xl font-extrabold text-sky-600">0</div>
+                        <div class="text-xs font-medium text-slate-400 mt-0.5">Cviků celkem</div>
+                    </div>
+                    <div>
+                        <div id="activeDays" class="text-2xl font-extrabold text-violet-600">0</div>
+                        <div class="text-xs font-medium text-slate-400 mt-0.5">Aktivních dnů</div>
+                    </div>
+                    <div>
+                        <div id="weekCount" class="text-2xl font-extrabold text-emerald-600">0</div>
+                        <div class="text-xs font-medium text-slate-400 mt-0.5">Týdnů</div>
+                    </div>
+                </div>
+                <div id="period" class="text-center text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100 font-medium"></div>
+            </div>
+
+            <!-- Exercise list -->
+            <div id="exerciseList" class="card animate-in-delay">
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Cviky podle frekvence</h2>
+                <div id="exercises" class="space-y-2.5"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+    (function() {
+        var COLORS = ['#0284c7', '#7c3aed', '#059669'];
+
+        function loadJSON(key) {
+            try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; }
+        }
+
+        function formatDate(ts) {
+            var d = new Date(ts);
+            return d.getDate() + '. ' + (d.getMonth() + 1) + '. ' + d.getFullYear();
+        }
+
+        // Load data
+        var plan = loadJSON('gym_plan_v1') || [];
+        var history = loadJSON('gym_history_v1');
+        var deleted = loadJSON('gym_deleted_exercises_v1') || {};
+
+        // Build exercise name/category lookup
+        var exerciseMap = {};
+        var categoryOrder = [];
+        for (var ci = 0; ci < plan.length; ci++) {
+            var cat = plan[ci];
+            categoryOrder.push(cat.name);
+            for (var ei = 0; ei < cat.items.length; ei++) {
+                exerciseMap[cat.items[ei].id] = { name: cat.items[ei].name, category: cat.name };
+            }
+        }
+        // Add deleted exercises
+        var delKeys = Object.keys(deleted);
+        for (var di = 0; di < delKeys.length; di++) {
+            var dk = delKeys[di];
+            if (!exerciseMap[dk]) {
+                exerciseMap[dk] = { name: deleted[dk].name, category: deleted[dk].category };
+            }
+        }
+
+        // Build category → color map
+        var allCategories = [];
+        for (var ci2 = 0; ci2 < plan.length; ci2++) {
+            if (allCategories.indexOf(plan[ci2].name) === -1) allCategories.push(plan[ci2].name);
+        }
+        for (var di2 = 0; di2 < delKeys.length; di2++) {
+            var dCat = deleted[delKeys[di2]].category;
+            if (dCat && allCategories.indexOf(dCat) === -1) allCategories.push(dCat);
+        }
+        var categoryColorMap = {};
+        for (var cci = 0; cci < allCategories.length; cci++) {
+            categoryColorMap[allCategories[cci]] = COLORS[cci % 3];
+        }
+
+        // Check if there's any data
+        var weeks = (history && history.weeks) ? history.weeks : {};
+        var weekKeys = Object.keys(weeks);
+
+        if (weekKeys.length === 0) {
+            document.getElementById('empty').classList.remove('hidden');
+            return;
+        }
+
+        // Process all done entries
+        var exerciseCounts = {};
+        var allTimestamps = [];
+        var totalCount = 0;
+
+        for (var wi = 0; wi < weekKeys.length; wi++) {
+            var week = weeks[weekKeys[wi]];
+            if (!week.done) continue;
+            for (var di3 = 0; di3 < week.done.length; di3++) {
+                var parts = week.done[di3].split('|');
+                var exId = parts[0];
+                var ts = parseInt(parts[1], 10);
+                totalCount++;
+                exerciseCounts[exId] = (exerciseCounts[exId] || 0) + 1;
+                if (ts) allTimestamps.push(ts);
+            }
+        }
+
+        // Unique active days
+        var daySet = {};
+        for (var ti = 0; ti < allTimestamps.length; ti++) {
+            var d = new Date(allTimestamps[ti]);
+            daySet[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] = true;
+        }
+        var activeDays = Object.keys(daySet).length;
+
+        // Period
+        allTimestamps.sort(function(a, b) { return a - b; });
+        var firstDate = allTimestamps[0];
+        var lastDate = allTimestamps[allTimestamps.length - 1];
+
+        // Sort exercises by count
+        var exIds = Object.keys(exerciseCounts);
+        exIds.sort(function(a, b) { return exerciseCounts[b] - exerciseCounts[a]; });
+        var maxCount = exIds.length > 0 ? exerciseCounts[exIds[0]] : 1;
+
+        // Render summary
+        document.getElementById('totalCount').textContent = totalCount;
+        document.getElementById('activeDays').textContent = activeDays;
+        document.getElementById('weekCount').textContent = weekKeys.length;
+        document.getElementById('period').textContent = formatDate(firstDate) + ' — ' + formatDate(lastDate);
+        document.getElementById('content').classList.remove('hidden');
+
+        // Render exercise list
+        var container = document.getElementById('exercises');
+        var html = '';
+        for (var i = 0; i < exIds.length; i++) {
+            var id = exIds[i];
+            var count = exerciseCounts[id];
+            var info = exerciseMap[id];
+            var name, category, color, isUnknown = false;
+
+            if (info) {
+                name = info.name;
+                category = info.category;
+                color = categoryColorMap[category] || '#94a3b8';
+            } else {
+                name = 'Neznámý cvik (' + id + ')';
+                category = '';
+                color = '#94a3b8';
+                isUnknown = true;
+            }
+
+            var pct = Math.round((count / maxCount) * 100);
+            var textColor = isUnknown ? 'color:#94a3b8' : '';
+
+            html += '<div class="flex items-center gap-3">'
+                + '<div class="flex-1 min-w-0">'
+                + '<div class="flex items-baseline gap-2 mb-1">'
+                + '<span class="text-sm font-semibold truncate" style="' + textColor + '">' + name + '</span>'
+                + (category ? '<span class="text-[10px] font-bold uppercase tracking-wider shrink-0" style="color:' + color + '">' + category + '</span>' : '')
+                + '</div>'
+                + '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
+                + '</div>'
+                + '<span class="text-sm font-bold tabular-nums shrink-0 w-8 text-right" style="color:' + color + '">' + count + '</span>'
+                + '</div>';
+        }
+        container.innerHTML = html;
+    })();
+    </script>
+</body>
+</html>
