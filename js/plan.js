@@ -37,13 +37,15 @@ function getPrevWeekDoneList(currentWeekId) {
         return prevWeekCache.doneList;
     }
 
-    const prevWeekTs = parseInt(currentWeekId) - (7 * 24 * 60 * 60 * 1000);
-    const prevWeekData = state.weeks[prevWeekTs.toString()];
+    const prevMonday = new Date(parseInt(currentWeekId));
+    prevMonday.setDate(prevMonday.getDate() - 7);
+    prevMonday.setHours(0, 0, 0, 0);
+    const prevWeekData = state.weeks[prevMonday.getTime().toString()];
 
     prevWeekCache.weekId = currentWeekId;
     prevWeekCache.doneList = prevWeekData
         ? (prevWeekData.done || []).map(entry => entry.split('|')[0])
-        : [];
+        : null;
 
     return prevWeekCache.doneList;
 }
