@@ -37,14 +37,27 @@ function getPrevWeekDoneList(currentWeekId) {
         return prevWeekCache.doneList;
     }
 
-    const prevMonday = new Date(parseInt(currentWeekId));
-    prevMonday.setDate(prevMonday.getDate() - 7);
-    prevMonday.setHours(0, 0, 0, 0);
-    const prevWeekData = state.weeks[prevMonday.getTime().toString()];
+    // Find the most recent previous week by scanning actual stored keys.
+    // This avoids DST timestamp mismatch when computing previous Monday.
+    const currentTs = parseInt(currentWeekId);
+    const fourWeeksMs = 4 * 7 * 24 * 60 * 60 * 1000;
+    let bestKey = null;
+    let bestTs = 0;
+
+    for (const weekKey of Object.keys(state.weeks)) {
+        const ts = parseInt(weekKey);
+        if (ts < currentTs && ts > bestTs && (currentTs - ts) < fourWeeksMs) {
+            const weekData = state.weeks[weekKey];
+            if (weekData && weekData.done && weekData.done.length > 0) {
+                bestTs = ts;
+                bestKey = weekKey;
+            }
+        }
+    }
 
     prevWeekCache.weekId = currentWeekId;
-    prevWeekCache.doneList = prevWeekData
-        ? (prevWeekData.done || []).map(entry => entry.split('|')[0])
+    prevWeekCache.doneList = bestKey
+        ? state.weeks[bestKey].done.map(entry => entry.split('|')[0])
         : null;
 
     return prevWeekCache.doneList;
