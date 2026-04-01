@@ -140,8 +140,8 @@ export function renderPlan() {
                 isLocked = isDayLocked(timestamp);
             }
 
-            // Only count today's completions for progress
-            if (isDone && !isLocked) doneCount++;
+            // Count all completions for this week
+            if (isDone) doneCount++;
 
             // Check if missed last week AND not already done this week
             // isDone already checks if the task is done this week (via isInCurrentWeek)
@@ -222,10 +222,10 @@ export function togGym(id, el) {
     weekData.total = state.totalItems;
     saveCloudWeekData(state.currentWeekId);
 
-    // Recalculate Day Progress
+    // Recalculate Weekly Progress
     const doneCount = weekData.done.filter(entry => {
         const parts = entry.split('|');
-        return parts[1] && isToday(parts[1]);
+        return parts[1] && isInCurrentWeek(parts[1]);
     }).length;
 
     const { bar, text } = getDomElements();
