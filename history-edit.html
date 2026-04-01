@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upravit historii | Gym</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
+            min-height: 100vh;
+            min-height: 100dvh;
+            color: #1e293b;
+        }
+        .card {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            padding: 20px;
+        }
+
+        /* Date picker */
+        .date-nav-btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            color: #475569;
+        }
+        .date-nav-btn:hover { background: #e2e8f0; }
+        .date-nav-btn:active { transform: scale(0.92); }
+        .date-display {
+            flex: 1;
+            text-align: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .date-display input[type="date"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        /* Category header */
+        .cat-header {
+            font-size: 0.7rem;
+            font-weight: 800;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            margin: 18px 0 8px;
+            padding: 0 4px;
+        }
+        .cat-header:first-child { margin-top: 0; }
+
+        /* Exercise item */
+        .exercise-item {
+            display: flex;
+            align-items: center;
+            padding: 13px 14px;
+            border-radius: 14px;
+            background: #f8fafc;
+            margin-bottom: 7px;
+            cursor: pointer;
+            transition: background 0.18s, border-color 0.18s, transform 0.1s;
+            border: 2px solid transparent;
+            gap: 13px;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .exercise-item:active { transform: scale(0.98); }
+        .exercise-item.checked {
+            background: #f0fdf4;
+            border-color: #86efac;
+        }
+        .custom-check {
+            width: 26px;
+            height: 26px;
+            border-radius: 8px;
+            border: 2px solid #cbd5e1;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.18s, border-color 0.18s;
+            flex-shrink: 0;
+        }
+        .exercise-item.checked .custom-check {
+            background: #22c55e;
+            border-color: #22c55e;
+        }
+        .check-icon {
+            opacity: 0;
+            transform: scale(0.5);
+            transition: opacity 0.15s, transform 0.15s;
+        }
+        .exercise-item.checked .check-icon {
+            opacity: 1;
+            transform: scale(1);
+        }
+        .exercise-name {
+            font-size: 0.95rem;
+            font-weight: 500;
+            flex: 1;
+            transition: color 0.18s;
+        }
+        .exercise-item.checked .exercise-name {
+            color: #16a34a;
+        }
+
+        /* Save button */
+        .save-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 12px 20px;
+            padding-bottom: calc(12px + env(safe-area-inset-bottom));
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border-top: 1px solid rgba(0,0,0,0.06);
+        }
+        .save-btn {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.2s, transform 0.1s, opacity 0.2s;
+            background: #22c55e;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .save-btn:active { transform: scale(0.98); }
+        .save-btn.saving { background: #16a34a; opacity: 0.85; pointer-events: none; }
+        .save-btn.saved { background: #15803d; pointer-events: none; }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-in { animation: fadeIn 0.4s ease-out both; }
+        .animate-in-delay { animation: fadeIn 0.4s ease-out 0.1s both; }
+
+        /* Dark mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+        }
+        body.dark-mode .card {
+            background: #1e293b;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        body.dark-mode a { color: #94a3b8; }
+        body.dark-mode a:hover { color: #f1f5f9; }
+        body.dark-mode h1 { color: #f1f5f9; }
+        body.dark-mode .date-nav-btn {
+            background: #334155;
+            color: #94a3b8;
+        }
+        body.dark-mode .date-nav-btn:hover { background: #475569; }
+        body.dark-mode .exercise-item {
+            background: #0f172a;
+            border-color: transparent;
+        }
+        body.dark-mode .exercise-item.checked {
+            background: rgba(34, 197, 94, 0.08);
+            border-color: #166534;
+        }
+        body.dark-mode .exercise-item.checked .exercise-name {
+            color: #4ade80;
+        }
+        body.dark-mode .custom-check {
+            background: #1e293b;
+            border-color: #475569;
+        }
+        body.dark-mode .save-bar {
+            background: rgba(15, 23, 42, 0.9);
+            border-top-color: rgba(255,255,255,0.05);
+        }
+        body.dark-mode .date-label-main { color: #f1f5f9; }
+        body.dark-mode .date-label-sub { color: #94a3b8; }
+        body.dark-mode .cat-header { color: #64748b; }
+    </style>
+</head>
+<body>
+    <!-- Early dark mode init -->
+    <script>
+    try { var _s = JSON.parse(localStorage.getItem('gym_settings_v1')); if (_s && _s.darkMode) document.body.classList.add('dark-mode'); } catch(e) {}
+    </script>
+
+    <div id="app" class="max-w-xl mx-auto px-5 pt-8 pb-32">
+        <!-- Back -->
+        <a href="./" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 mb-5 transition-colors">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+            Zpět
+        </a>
+
+        <h1 class="text-2xl font-extrabold text-slate-900 mb-5 dark:text-slate-100">Upravit historii</h1>
+
+        <!-- Date picker card -->
+        <div class="card animate-in mb-4">
+            <div class="flex items-center gap-3">
+                <button class="date-nav-btn" id="btn-prev" aria-label="Předchozí den">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <div class="date-display">
+                    <div id="date-label-main" class="date-label-main text-base font-bold text-slate-800"></div>
+                    <div id="date-label-sub" class="date-label-sub text-xs text-slate-400 mt-0.5 font-medium"></div>
+                    <input type="date" id="date-input" aria-label="Vybrat datum">
+                </div>
+                <button class="date-nav-btn" id="btn-next" aria-label="Následující den">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Exercise list card -->
+        <div class="card animate-in-delay" id="exercises-card">
+            <div id="exercises-list">
+                <p class="text-slate-400 text-sm text-center py-4">Načítání…</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save bar -->
+    <div class="save-bar">
+        <button class="save-btn" id="save-btn">
+            <span id="save-label">Uložit změny</span>
+        </button>
+    </div>
+
+    <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+    import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    const FIREBASE_CONFIG = {
+        apiKey: "AIzaSyD6-Sn9kM_Pnj1SxTmDT82H3C6kqAqS_ig",
+        authDomain: "fitko-9c0df.firebaseapp.com",
+        projectId: "fitko-9c0df",
+        storageBucket: "fitko-9c0df.firebasestorage.app",
+        messagingSenderId: "1015033490512",
+        appId: "1:1015033490512:web:77bf9312cdb9bb503b7555"
+    };
+    const LS_KEY = 'gym_history_v1';
+    const PLAN_KEY = 'gym_plan_v1';
+    const CAT_COLORS = ['#0284c7', '#7c3aed', '#059669', '#dc2626', '#d97706'];
+
+    // Firebase
+    let db = null;
+    let currentUser = null;
+    try {
+        const app = initializeApp(FIREBASE_CONFIG);
+        const auth = getAuth(app);
+        db = getFirestore(app);
+        onAuthStateChanged(auth, u => { currentUser = u; });
+    } catch(e) {}
+
+    // === Helpers ===
+    function loadJSON(key) {
+        try { return JSON.parse(localStorage.getItem(key)); } catch(e) { return null; }
+    }
+
+    function getMondayTimestamp(d) {
+        d = new Date(d);
+        var day = d.getDay();
+        var diff = d.getDate() - day + (day === 0 ? -6 : 1);
+        d.setDate(diff);
+        d.setHours(0, 0, 0, 0);
+        return d.getTime();
+    }
+
+    function toInputValue(d) {
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return y + '-' + m + '-' + day;
+    }
+
+    function formatDateLabel(d) {
+        var today = new Date();
+        var yesterday = new Date(today); yesterday.setDate(today.getDate() - 1);
+        var days = ['Neděle','Pondělí','Úterý','Středa','Čtvrtek','Pátek','Sobota'];
+        var months = ['ledna','února','března','dubna','května','června','července','srpna','září','října','listopadu','prosince'];
+        var dayNames = ['Ne','Po','Út','St','Čt','Pá','So'];
+
+        var isToday = d.getDate() === today.getDate() && d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+        var isYesterday = d.getDate() === yesterday.getDate() && d.getMonth() === yesterday.getMonth() && d.getFullYear() === yesterday.getFullYear();
+
+        var main, sub;
+        if (isToday) {
+            main = 'Dnes';
+            sub = days[d.getDay()] + ' · ' + d.getDate() + '. ' + months[d.getMonth()];
+        } else if (isYesterday) {
+            main = 'Včera';
+            sub = days[d.getDay()] + ' · ' + d.getDate() + '. ' + months[d.getMonth()];
+        } else {
+            main = dayNames[d.getDay()] + ' ' + d.getDate() + '. ' + (d.getMonth() + 1) + '.';
+            sub = d.getFullYear() !== today.getFullYear() ? String(d.getFullYear()) : days[d.getDay()];
+        }
+        return { main, sub };
+    }
+
+    // === State ===
+    var currentDate = new Date();
+    currentDate.setHours(12, 0, 0, 0);
+
+    var plan = loadJSON(PLAN_KEY) || [];
+
+    // === Render ===
+    function renderDate() {
+        var lbl = formatDateLabel(currentDate);
+        document.getElementById('date-label-main').textContent = lbl.main;
+        document.getElementById('date-label-sub').textContent = lbl.sub;
+        document.getElementById('date-input').value = toInputValue(currentDate);
+
+        var tomorrow = new Date();
+        tomorrow.setHours(23, 59, 59, 0);
+        document.getElementById('btn-next').disabled = currentDate >= tomorrow;
+        document.getElementById('btn-next').style.opacity = currentDate >= tomorrow ? '0.35' : '1';
+
+        renderExercises();
+    }
+
+    function renderExercises() {
+        var weekId = getMondayTimestamp(currentDate).toString();
+        var history = loadJSON(LS_KEY);
+        var weeks = (history && history.weeks) ? history.weeks : {};
+        var weekData = weeks[weekId];
+        var doneList = weekData ? (weekData.done || []) : [];
+
+        var html = '';
+        plan.forEach(function(cat, ci) {
+            var color = CAT_COLORS[ci % CAT_COLORS.length];
+            html += '<div class="cat-header" style="color:' + color + '">' + (cat.name || '') + '</div>';
+
+            (cat.items || []).forEach(function(item) {
+                var id = item.id || item;
+                var name = item.name || item;
+                var isDone = doneList.some(function(entry) {
+                    var parts = entry.split('|');
+                    if (parts[0] !== id || !parts[1]) return false;
+                    var ed = new Date(parseInt(parts[1]));
+                    return ed.getDate() === currentDate.getDate() &&
+                           ed.getMonth() === currentDate.getMonth() &&
+                           ed.getFullYear() === currentDate.getFullYear();
+                });
+                var checkedClass = isDone ? ' checked' : '';
+                var checkFill = isDone ? 'white' : 'none';
+                html += '<div class="exercise-item' + checkedClass + '" data-id="' + escHtml(id) + '" onclick="toggleItem(this)">'
+                    + '<div class="custom-check">'
+                    + '<svg class="check-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>'
+                    + '</div>'
+                    + '<span class="exercise-name">' + escHtml(name) + '</span>'
+                    + '</div>';
+            });
+        });
+
+        if (!html) {
+            html = '<p class="text-slate-400 text-sm text-center py-4">Plán cvičení je prázdný.</p>';
+        }
+
+        document.getElementById('exercises-list').innerHTML = html;
+    }
+
+    function escHtml(str) {
+        return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    // === Toggle ===
+    window.toggleItem = function(el) {
+        el.classList.toggle('checked');
+    };
+
+    // === Navigation ===
+    document.getElementById('btn-prev').addEventListener('click', function() {
+        currentDate = new Date(currentDate);
+        currentDate.setDate(currentDate.getDate() - 1);
+        renderDate();
+    });
+
+    document.getElementById('btn-next').addEventListener('click', function() {
+        currentDate = new Date(currentDate);
+        currentDate.setDate(currentDate.getDate() + 1);
+        renderDate();
+    });
+
+    document.getElementById('date-input').addEventListener('change', function() {
+        var parts = this.value.split('-').map(Number);
+        if (parts.length === 3) {
+            currentDate = new Date(parts[0], parts[1] - 1, parts[2], 12, 0, 0, 0);
+            renderDate();
+        }
+    });
+
+    // === Save ===
+    document.getElementById('save-btn').addEventListener('click', async function() {
+        var btn = this;
+        var label = document.getElementById('save-label');
+        btn.classList.add('saving');
+        label.textContent = 'Ukládám…';
+
+        var weekId = getMondayTimestamp(currentDate).toString();
+
+        // Load current data
+        var history = loadJSON(LS_KEY) || { weeks: {} };
+        if (!history.weeks) history.weeks = {};
+
+        if (!history.weeks[weekId]) {
+            history.weeks[weekId] = { week: parseInt(weekId), done: [], total: 0 };
+        }
+
+        var weekData = history.weeks[weekId];
+        var items = document.querySelectorAll('#exercises-list .exercise-item');
+
+        items.forEach(function(el) {
+            var id = el.getAttribute('data-id');
+            // Remove existing entries for this exercise on selected date
+            weekData.done = weekData.done.filter(function(entry) {
+                var p = entry.split('|');
+                if (p[0] !== id || !p[1]) return true;
+                var ed = new Date(parseInt(p[1]));
+                return !(ed.getDate() === currentDate.getDate() &&
+                         ed.getMonth() === currentDate.getMonth() &&
+                         ed.getFullYear() === currentDate.getFullYear());
+            });
+            // Add if checked
+            if (el.classList.contains('checked')) {
+                weekData.done.push(id + '|' + currentDate.getTime());
+            }
+        });
+
+        // Save to localStorage
+        try {
+            localStorage.setItem(LS_KEY, JSON.stringify(history));
+        } catch(e) {}
+
+        // Save to Firebase
+        if (db && currentUser && !currentUser.isAnonymous) {
+            try {
+                await setDoc(doc(db, 'users', currentUser.uid, 'weeks', weekId), weekData, { merge: true });
+            } catch(e) {}
+        }
+
+        // Show success
+        btn.classList.remove('saving');
+        btn.classList.add('saved');
+        label.textContent = '✓ Uloženo';
+
+        setTimeout(function() {
+            window.location.href = './';
+        }, 700);
+    });
+
+    // === Init ===
+    renderDate();
+    </script>
+</body>
+</html>
