@@ -4,7 +4,7 @@ export const SETTINGS_KEY = "gym_settings_v1";
 export const DELETED_KEY = "gym_deleted_exercises_v1";
 export const PLAN_BACKUP_KEY = "gym_plan_v1_legacy_backup";
 export const HISTORY_BACKUP_KEY = "gym_history_v1_legacy_backup";
-export const APP_VERSION = "1.7.0"; // Version 1.7.0: Stable exercise/category IDs with legacy data migration
+export const APP_VERSION = "1.7.0"; // Version 1.7.0: Stable exercise/category IDs with legacy data migration — Also update CACHE_VERSION in service-worker.js
 
 export const DEFAULT_PLAN = [
     {

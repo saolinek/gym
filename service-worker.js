@@ -1,8 +1,9 @@
-const CACHE_VERSION = '1.6.2';
+const CACHE_VERSION = '1.7.0'; // Keep in sync with APP_VERSION in js/data.js
 const CACHE_NAME = `gym-app-v${CACHE_VERSION}`;
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
+  './stats.html',
   './manifest.json',
   './pwa/icon-192.png',
   './pwa/icon-512.png',
