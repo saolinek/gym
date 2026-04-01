@@ -50,16 +50,6 @@ export function renderCharts() {
         });
     });
 
-    // Calculate best month
-    let bestMonth = 0;
-    let bestMonthCount = 0;
-    monthlyData.forEach((m, idx) => {
-        if (m.count > bestMonthCount) {
-            bestMonthCount = m.count;
-            bestMonth = idx;
-        }
-    });
-
     const monthNames = ["Led", "Úno", "Bře", "Dub", "Kvě", "Čvn", "Čvc", "Srp", "Zář", "Říj", "Lis", "Pro"];
     const monthNamesFull = ["Leden", "Únor", "Březen", "Duben", "Květen", "Červen", "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"];
 
@@ -99,7 +89,6 @@ export function renderCharts() {
 
     monthlyData.forEach((data, idx) => {
         const isFuture = isCurrentYear && idx > currentMonth;
-        const isBest = idx === bestMonth && data.count > 0;
         const intensity = data.count / maxCount;
 
         // Color based on activity intensity
@@ -131,7 +120,6 @@ export function renderCharts() {
                 text-align: center;
                 border: 2px solid ${borderColor};
                 opacity: ${isFuture ? 0.3 : 1};
-                ${isBest ? 'box-shadow: 0 0 0 3px rgba(251, 191, 36, 0.5);' : ''}
             ">
                 <div style="font-size: 0.7rem; font-weight: 700; color: ${textColor}; opacity: 0.8; margin-bottom: 4px;">
                     ${monthNames[idx]}
@@ -147,18 +135,6 @@ export function renderCharts() {
     });
 
     html += `</div></div>`; // Close grid and card
-
-    // === 5. BEST MONTH HIGHLIGHT ===
-    if (bestMonthCount > 0) {
-        html += `
-            <div style="text-align: center; margin-top: 20px; padding: 16px; background: linear-gradient(135deg, rgba(251, 191, 36, 0.1), rgba(251, 191, 36, 0.2)); border-radius: 16px; border: 1px solid rgba(251, 191, 36, 0.3);">
-                <div style="font-size: 0.8rem; color: #92400e; font-weight: 600;">🏆 Nejlepší měsíc</div>
-                <div style="font-size: 1.2rem; font-weight: 800; color: #b45309; margin-top: 4px;">
-                    ${monthNamesFull[bestMonth]} – ${bestMonthCount} cviků
-                </div>
-            </div>
-        `;
-    }
 
     container.innerHTML = html;
 }
