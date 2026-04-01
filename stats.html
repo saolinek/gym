@@ -39,9 +39,37 @@
         }
         .animate-in { animation: fadeIn 0.5s ease-out both; }
         .animate-in-delay { animation: fadeIn 0.5s ease-out 0.15s both; }
+
+        /* Dark mode */
+        body.dark-mode {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            color: #f8fafc;
+        }
+        body.dark-mode .card {
+            background: #1e293b;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        }
+        body.dark-mode .progress-bar {
+            background: #334155;
+        }
+        body.dark-mode a {
+            color: #94a3b8;
+        }
+        body.dark-mode a:hover {
+            color: #f1f5f9;
+        }
+        body.dark-mode h1 {
+            color: #f1f5f9;
+        }
+        body.dark-mode #period {
+            border-color: #334155;
+        }
     </style>
 </head>
 <body>
+    <script>
+    try { var s = JSON.parse(localStorage.getItem('gym_settings_v1')); if (s && s.darkMode) document.body.classList.add('dark-mode'); } catch(e) {}
+    </script>
     <div id="app" class="max-w-xl mx-auto px-5 py-8 pb-6">
         <!-- Back button -->
         <a href="./" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 mb-5 transition-colors">
