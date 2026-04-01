@@ -283,6 +283,41 @@
             margin-bottom: 12px;
         }
 
+        /* === DRAG AND DROP === */
+        .drag-handle {
+            cursor: grab;
+            padding: 4px 8px 4px 0;
+            color: #94a3b8;
+            display: flex;
+            align-items: center;
+            touch-action: none;
+            flex-shrink: 0;
+        }
+
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+
+        .dragging-source {
+            opacity: 0.3 !important;
+        }
+
+        .drag-ghost {
+            pointer-events: none !important;
+            z-index: 9999 !important;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.25) !important;
+            transform: scale(1.02) rotate(0.5deg) !important;
+            transition: none !important;
+        }
+
+        .drop-indicator {
+            height: 3px;
+            background: #3b82f6;
+            border-radius: 2px;
+            margin: 4px 0;
+            pointer-events: none;
+        }
+
         /* Particle & Reset */
         .particle {
             position: fixed;

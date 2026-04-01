@@ -87,6 +87,8 @@ function triggerHaptic() {
     }
 }
 
+const GRIP_SVG = `<svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><circle cx="10" cy="3" r="1.5"/><circle cx="4" cy="9" r="1.5"/><circle cx="10" cy="9" r="1.5"/><circle cx="4" cy="15" r="1.5"/><circle cx="10" cy="15" r="1.5"/></svg>`;
+
 // === PURE RENDER FUNCTION ===
 export function renderPlan() {
     if (!state.appReady) return;
@@ -108,6 +110,7 @@ export function renderPlan() {
         html += `<div class="gym-cat">`;
 
         html += `<div class="cat-header">
+                    ${state.isEditMode ? `<div class="drag-handle" data-type="cat" data-catidx="${catIdx}">${GRIP_SVG}</div>` : ''}
                     <h2 style="font-weight:800; margin:0; font-size:1.25rem; flex-grow:1;" ${state.isEditMode ? `onclick="renameCategory(${catIdx})"` : ''}>${categoryName}</h2>
                     ${state.isEditMode ? `
                         <div class="edit-controls">
@@ -150,6 +153,7 @@ export function renderPlan() {
 
             if (state.isEditMode) {
                 html += `<div class="gym-item" style="cursor: default;">
+                    <div class="drag-handle" data-type="item" data-catidx="${catIdx}" data-itemidx="${itemIdx}">${GRIP_SVG}</div>
                     <span style="font-weight:500; flex-grow:1; cursor:pointer;" onclick="renameItem(${catIdx}, ${itemIdx})">${exerciseName}</span>
                     <div class="icon-btn del-btn" onclick="deleteItem(${catIdx}, ${itemIdx})">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
@@ -174,6 +178,8 @@ export function renderPlan() {
         html += `</div>`;
     });
     list.innerHTML = html;
+
+    if (state.isEditMode) initDragAndDrop();
 
     if (bar) bar.style.width = (state.totalItems > 0 ? (doneCount / state.totalItems * 100) : 0) + '%';
     if (text) text.innerText = `${doneCount} / ${state.totalItems} hotovo`;
@@ -355,4 +361,125 @@ function spawnPart(el) {
         document.body.appendChild(p);
         setTimeout(() => p.remove(), 600);
     }
+}
+
+// === DRAG AND DROP ===
+let dnd = null;
+
+function initDragAndDrop() {
+    const list = document.getElementById('gym-list');
+    if (!list) return;
+    list.querySelectorAll('.drag-handle').forEach(h => {
+        h.addEventListener('pointerdown', startDrag, { passive: false });
+    });
+}
+
+function startDrag(e) {
+    e.preventDefault();
+    const h = e.currentTarget;
+    const isCat = h.dataset.type === 'cat';
+    const catIdx = parseInt(h.dataset.catidx);
+    const itemIdx = isCat ? -1 : parseInt(h.dataset.itemidx);
+    const src = isCat ? h.closest('.gym-cat') : h.closest('.gym-item');
+    const rect = src.getBoundingClientRect();
+
+    const ghost = src.cloneNode(true);
+    ghost.classList.add('drag-ghost');
+    ghost.style.cssText += `;position:fixed;width:${rect.width}px;top:${rect.top}px;left:${rect.left}px;pointer-events:none;z-index:9999;border-top-color:${getComputedStyle(src).borderTopColor};`;
+    document.body.appendChild(ghost);
+    src.classList.add('dragging-source');
+
+    dnd = { type: isCat ? 'cat' : 'item', catIdx, itemIdx, ghost, src, offsetY: e.clientY - rect.top, offsetX: e.clientX - rect.left, dropIdx: -1 };
+
+    h.setPointerCapture(e.pointerId);
+    h.addEventListener('pointermove', onDragMove, { passive: false });
+    h.addEventListener('pointerup', onDragEnd);
+    h.addEventListener('pointercancel', onDragCancel);
+}
+
+function onDragMove(e) {
+    if (!dnd) return;
+    e.preventDefault();
+    dnd.ghost.style.top = (e.clientY - dnd.offsetY) + 'px';
+    dnd.ghost.style.left = (e.clientX - dnd.offsetX) + 'px';
+
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    if (dnd.type === 'cat') updateCatDropPos(e.clientY);
+    else updateItemDropPos(e.clientY);
+}
+
+function updateCatDropPos(y) {
+    const cats = Array.from(document.querySelectorAll('#gym-list > .gym-cat'));
+    let idx = cats.length;
+    for (let i = 0; i < cats.length; i++) {
+        if (cats[i] === dnd.src) continue;
+        const r = cats[i].getBoundingClientRect();
+        if (y < r.top + r.height / 2) { idx = i; break; }
+    }
+    dnd.dropIdx = idx;
+    const ind = document.createElement('div');
+    ind.className = 'drop-indicator';
+    const list = document.getElementById('gym-list');
+    idx >= cats.length ? list.appendChild(ind) : list.insertBefore(ind, cats[idx]);
+}
+
+function updateItemDropPos(y) {
+    const catEl = document.querySelectorAll('#gym-list > .gym-cat')[dnd.catIdx];
+    if (!catEl) return;
+    const items = Array.from(catEl.querySelectorAll('.gym-item'));
+    let idx = items.length;
+    for (let i = 0; i < items.length; i++) {
+        if (items[i] === dnd.src) continue;
+        const r = items[i].getBoundingClientRect();
+        if (y < r.top + r.height / 2) { idx = i; break; }
+    }
+    dnd.dropIdx = idx;
+    const ind = document.createElement('div');
+    ind.className = 'drop-indicator';
+    const addBtn = catEl.querySelector('.add-btn');
+    idx >= items.length
+        ? (addBtn ? catEl.insertBefore(ind, addBtn) : catEl.appendChild(ind))
+        : catEl.insertBefore(ind, items[idx]);
+}
+
+function onDragEnd(e) {
+    if (!dnd) return;
+    const h = e.currentTarget;
+    h.removeEventListener('pointermove', onDragMove);
+    h.removeEventListener('pointerup', onDragEnd);
+    h.removeEventListener('pointercancel', onDragCancel);
+
+    const { type, catIdx, itemIdx, dropIdx } = dnd;
+    dnd.ghost.remove();
+    dnd.src.classList.remove('dragging-source');
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    dnd = null;
+
+    if (dropIdx < 0) return;
+
+    if (type === 'cat') {
+        if (dropIdx === catIdx || dropIdx === catIdx + 1) return;
+        const [cat] = state.plan.splice(catIdx, 1);
+        state.plan.splice(dropIdx > catIdx ? dropIdx - 1 : dropIdx, 0, cat);
+    } else {
+        if (dropIdx === itemIdx || dropIdx === itemIdx + 1) return;
+        const items = state.plan[catIdx].items;
+        const [item] = items.splice(itemIdx, 1);
+        items.splice(dropIdx > itemIdx ? dropIdx - 1 : dropIdx, 0, item);
+    }
+
+    saveCloudPlan();
+    triggerAppRender();
+}
+
+function onDragCancel(e) {
+    if (!dnd) return;
+    const h = e.currentTarget;
+    h.removeEventListener('pointermove', onDragMove);
+    h.removeEventListener('pointerup', onDragEnd);
+    h.removeEventListener('pointercancel', onDragCancel);
+    dnd.ghost.remove();
+    dnd.src.classList.remove('dragging-source');
+    document.querySelectorAll('.drop-indicator').forEach(el => el.remove());
+    dnd = null;
 }
