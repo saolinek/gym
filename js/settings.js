@@ -41,7 +41,7 @@ export function renderSettings() {
 
         <div class="settings-section">
             <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">HISTORIE</h3>
-            <div class="settings-item" onclick="openHistoryEditor()" style="cursor: pointer; justify-content: center;">
+            <div class="settings-item" onclick="window.location.href='history-edit.html'" style="cursor: pointer; justify-content: center;">
                 <span style="font-weight: 600; color: #3b82f6;">📝 Upravit historii</span>
             </div>
             <div class="settings-item" onclick="window.location.href='stats.html'" style="cursor: pointer; justify-content: center;">
