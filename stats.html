@@ -2,13 +2,13 @@
 <html lang="cs">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Statistiky | Gym</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+        * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; }
         body {
             font-family: 'Inter', sans-serif;
             background: linear-gradient(120deg, #a1c4fd 0%, #c2e9fb 100%);
@@ -40,12 +40,94 @@
         .animate-in { animation: fadeIn 0.5s ease-out both; }
         .animate-in-delay { animation: fadeIn 0.5s ease-out 0.15s both; }
 
+        /* Segmented tabs */
+        .stats-tabs {
+            display: flex;
+            background: #e2e8f0;
+            border-radius: 10px;
+            padding: 3px;
+            gap: 3px;
+            margin-bottom: 16px;
+        }
+        .stats-tab {
+            flex: 1;
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            background: transparent;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: background 0.18s, color 0.18s, box-shadow 0.18s;
+            white-space: nowrap;
+        }
+        .stats-tab.active {
+            background: white;
+            color: #1e293b;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.14);
+        }
+
+        /* Calendar day cells */
+        .day-cell {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            font-size: 0.9rem;
+            cursor: default;
+            color: #1e293b;
+            border: 2px solid transparent;
+        }
+        .day-cell.active {
+            background: #dbeafe;
+            color: #1d4ed8;
+            font-weight: 700;
+        }
+        .day-cell.today {
+            border-color: #3b82f6;
+        }
+
+        /* Year/Month cards */
+        .stat-card {
+            background: #ffffff;
+            border-radius: 20px;
+            padding: 16px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+        }
+        .header-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+        .stats-h1 {
+            font-size: 1.5rem;
+            text-align: center;
+            font-weight: 900;
+            margin: 0;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+            line-height: 1;
+        }
+        .nav-arrow {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 6px 12px;
+            font-size: 1.3rem;
+            color: #3b82f6;
+        }
+
         /* Dark mode */
         body.dark-mode {
             background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
             color: #f8fafc;
         }
-        body.dark-mode .card {
+        body.dark-mode .card,
+        body.dark-mode .stat-card {
             background: #1e293b;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
         }
@@ -58,11 +140,33 @@
         body.dark-mode a:hover {
             color: #f1f5f9;
         }
-        body.dark-mode h1 {
+        body.dark-mode h1,
+        body.dark-mode .stats-h1 {
             color: #f1f5f9;
         }
         body.dark-mode #period {
             border-color: #334155;
+        }
+        body.dark-mode .stats-tabs {
+            background: #0f172a;
+        }
+        body.dark-mode .stats-tab {
+            color: #475569;
+        }
+        body.dark-mode .stats-tab.active {
+            background: #1e293b;
+            color: #f1f5f9;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
+        }
+        body.dark-mode .day-cell {
+            color: #cbd5e1;
+        }
+        body.dark-mode .day-cell.active {
+            background: #1e3a8a;
+            color: #60a5fa;
+        }
+        body.dark-mode .day-cell.today {
+            border-color: #60a5fa;
         }
     </style>
 </head>
@@ -70,48 +174,64 @@
     <script>
     try { var s = JSON.parse(localStorage.getItem('gym_settings_v1')); if (s && s.darkMode) document.body.classList.add('dark-mode'); } catch(e) {}
     </script>
-    <div id="app" class="max-w-xl mx-auto px-5 py-8 pb-6">
+    <div id="app" class="max-w-xl mx-auto px-5 py-6 pb-6">
         <!-- Back button -->
-        <a href="./" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 mb-5 transition-colors">
+        <a href="./" class="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-700 hover:text-slate-900 mb-4 transition-colors">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
             Zpět
         </a>
 
-        <h1 class="text-2xl font-extrabold text-slate-900 mb-5">Statistiky</h1>
+        <h1 class="text-2xl font-extrabold text-slate-900 mb-4">Statistiky</h1>
 
-        <!-- Empty state -->
-        <div id="empty" class="hidden card text-center py-16">
-            <div class="text-4xl mb-3">📊</div>
-            <p class="text-slate-500 font-medium">Zatím žádná data</p>
+        <!-- Tabs -->
+        <div class="stats-tabs">
+            <button class="stats-tab active" onclick="showTab('overview')">Přehled</button>
+            <button class="stats-tab" onclick="showTab('month')">Měsíc</button>
+            <button class="stats-tab" onclick="showTab('year')">Rok</button>
         </div>
 
-        <!-- Stats content -->
-        <div id="content" class="hidden space-y-4">
-            <!-- Summary card -->
-            <div id="summary" class="card animate-in">
-                <div class="grid grid-cols-3 gap-3 text-center">
-                    <div>
-                        <div id="totalCount" class="text-2xl font-extrabold text-sky-600">0</div>
-                        <div class="text-xs font-medium text-slate-400 mt-0.5">Cviků celkem</div>
+        <!-- TAB: Přehled (overview) -->
+        <div id="tab-overview">
+            <!-- Empty state -->
+            <div id="empty" class="hidden card text-center py-16">
+                <div class="text-4xl mb-3">📊</div>
+                <p class="text-slate-500 font-medium">Zatím žádná data</p>
+            </div>
+
+            <!-- Stats content -->
+            <div id="content" class="hidden space-y-4">
+                <!-- Summary card -->
+                <div id="summary" class="card animate-in">
+                    <div class="grid grid-cols-3 gap-3 text-center">
+                        <div>
+                            <div id="totalCount" class="text-2xl font-extrabold text-sky-600">0</div>
+                            <div class="text-xs font-medium text-slate-400 mt-0.5">Cviků celkem</div>
+                        </div>
+                        <div>
+                            <div id="activeDays" class="text-2xl font-extrabold text-violet-600">0</div>
+                            <div class="text-xs font-medium text-slate-400 mt-0.5">Aktivních dnů</div>
+                        </div>
+                        <div>
+                            <div id="weekCount" class="text-2xl font-extrabold text-emerald-600">0</div>
+                            <div class="text-xs font-medium text-slate-400 mt-0.5">Týdnů</div>
+                        </div>
                     </div>
-                    <div>
-                        <div id="activeDays" class="text-2xl font-extrabold text-violet-600">0</div>
-                        <div class="text-xs font-medium text-slate-400 mt-0.5">Aktivních dnů</div>
-                    </div>
-                    <div>
-                        <div id="weekCount" class="text-2xl font-extrabold text-emerald-600">0</div>
-                        <div class="text-xs font-medium text-slate-400 mt-0.5">Týdnů</div>
-                    </div>
+                    <div id="period" class="text-center text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100 font-medium"></div>
                 </div>
-                <div id="period" class="text-center text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100 font-medium"></div>
-            </div>
 
-            <!-- Exercise list -->
-            <div id="exerciseList" class="card animate-in-delay">
-                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Cviky podle frekvence</h2>
-                <div id="exercises" class="space-y-2.5"></div>
+                <!-- Exercise list -->
+                <div id="exerciseList" class="card animate-in-delay">
+                    <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Cviky podle frekvence</h2>
+                    <div id="exercises" class="space-y-2.5"></div>
+                </div>
             </div>
         </div>
+
+        <!-- TAB: Měsíc (month calendar) -->
+        <div id="tab-month" class="hidden"></div>
+
+        <!-- TAB: Rok (year charts) -->
+        <div id="tab-year" class="hidden"></div>
     </div>
 
     <script>
@@ -134,15 +254,12 @@
 
         // Build exercise name/category lookup
         var exerciseMap = {};
-        var categoryOrder = [];
         for (var ci = 0; ci < plan.length; ci++) {
             var cat = plan[ci];
-            categoryOrder.push(cat.name);
             for (var ei = 0; ei < cat.items.length; ei++) {
                 exerciseMap[cat.items[ei].id] = { name: cat.items[ei].name, category: cat.name };
             }
         }
-        // Add deleted exercises
         var delKeys = Object.keys(deleted);
         for (var di = 0; di < delKeys.length; di++) {
             var dk = delKeys[di];
@@ -165,93 +282,315 @@
             categoryColorMap[allCategories[cci]] = COLORS[cci % 3];
         }
 
-        // Check if there's any data
+        // Weeks data
         var weeks = (history && history.weeks) ? history.weeks : {};
         var weekKeys = Object.keys(weeks);
 
+        // ============ OVERVIEW TAB ============
         if (weekKeys.length === 0) {
             document.getElementById('empty').classList.remove('hidden');
-            return;
-        }
+        } else {
+            var exerciseCounts = {};
+            var allTimestamps = [];
+            var totalCount = 0;
 
-        // Process all done entries
-        var exerciseCounts = {};
-        var allTimestamps = [];
-        var totalCount = 0;
-
-        for (var wi = 0; wi < weekKeys.length; wi++) {
-            var week = weeks[weekKeys[wi]];
-            if (!week.done) continue;
-            for (var di3 = 0; di3 < week.done.length; di3++) {
-                var parts = week.done[di3].split('|');
-                var exId = parts[0];
-                var ts = parseInt(parts[1], 10);
-                totalCount++;
-                exerciseCounts[exId] = (exerciseCounts[exId] || 0) + 1;
-                if (ts) allTimestamps.push(ts);
-            }
-        }
-
-        // Unique active days
-        var daySet = {};
-        for (var ti = 0; ti < allTimestamps.length; ti++) {
-            var d = new Date(allTimestamps[ti]);
-            daySet[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] = true;
-        }
-        var activeDays = Object.keys(daySet).length;
-
-        // Period
-        allTimestamps.sort(function(a, b) { return a - b; });
-        var firstDate = allTimestamps[0];
-        var lastDate = allTimestamps[allTimestamps.length - 1];
-
-        // Sort exercises by count
-        var exIds = Object.keys(exerciseCounts);
-        exIds.sort(function(a, b) { return exerciseCounts[b] - exerciseCounts[a]; });
-        var maxCount = exIds.length > 0 ? exerciseCounts[exIds[0]] : 1;
-
-        // Render summary
-        document.getElementById('totalCount').textContent = totalCount;
-        document.getElementById('activeDays').textContent = activeDays;
-        document.getElementById('weekCount').textContent = weekKeys.length;
-        document.getElementById('period').textContent = formatDate(firstDate) + ' — ' + formatDate(lastDate);
-        document.getElementById('content').classList.remove('hidden');
-
-        // Render exercise list
-        var container = document.getElementById('exercises');
-        var html = '';
-        for (var i = 0; i < exIds.length; i++) {
-            var id = exIds[i];
-            var count = exerciseCounts[id];
-            var info = exerciseMap[id];
-            var name, category, color, isUnknown = false;
-
-            if (info) {
-                name = info.name;
-                category = info.category;
-                color = categoryColorMap[category] || '#94a3b8';
-            } else {
-                name = 'Neznámý cvik (' + id + ')';
-                category = '';
-                color = '#94a3b8';
-                isUnknown = true;
+            for (var wi = 0; wi < weekKeys.length; wi++) {
+                var week = weeks[weekKeys[wi]];
+                if (!week.done) continue;
+                for (var di3 = 0; di3 < week.done.length; di3++) {
+                    var parts = week.done[di3].split('|');
+                    var exId = parts[0];
+                    var ts = parseInt(parts[1], 10);
+                    totalCount++;
+                    exerciseCounts[exId] = (exerciseCounts[exId] || 0) + 1;
+                    if (ts) allTimestamps.push(ts);
+                }
             }
 
-            var pct = Math.round((count / maxCount) * 100);
-            var textColor = isUnknown ? 'color:#94a3b8' : '';
+            var daySet = {};
+            for (var ti = 0; ti < allTimestamps.length; ti++) {
+                var d = new Date(allTimestamps[ti]);
+                daySet[d.getFullYear() + '-' + d.getMonth() + '-' + d.getDate()] = true;
+            }
+            var activeDaysCount = Object.keys(daySet).length;
 
-            html += '<div class="flex items-center gap-3">'
-                + '<div class="flex-1 min-w-0">'
-                + '<div class="flex items-baseline gap-2 mb-1">'
-                + '<span class="text-sm font-semibold truncate" style="' + textColor + '">' + name + '</span>'
-                + (category ? '<span class="text-[10px] font-bold uppercase tracking-wider shrink-0" style="color:' + color + '">' + category + '</span>' : '')
-                + '</div>'
-                + '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
-                + '</div>'
-                + '<span class="text-sm font-bold tabular-nums shrink-0 w-8 text-right" style="color:' + color + '">' + count + '</span>'
-                + '</div>';
+            allTimestamps.sort(function(a, b) { return a - b; });
+            var firstDate = allTimestamps[0];
+            var lastDate = allTimestamps[allTimestamps.length - 1];
+
+            var exIds = Object.keys(exerciseCounts);
+            exIds.sort(function(a, b) { return exerciseCounts[b] - exerciseCounts[a]; });
+            var maxCount = exIds.length > 0 ? exerciseCounts[exIds[0]] : 1;
+
+            document.getElementById('totalCount').textContent = totalCount;
+            document.getElementById('activeDays').textContent = activeDaysCount;
+            document.getElementById('weekCount').textContent = weekKeys.length;
+            document.getElementById('period').textContent = formatDate(firstDate) + ' — ' + formatDate(lastDate);
+            document.getElementById('content').classList.remove('hidden');
+
+            var container = document.getElementById('exercises');
+            var html = '';
+            for (var i = 0; i < exIds.length; i++) {
+                var id = exIds[i];
+                var count = exerciseCounts[id];
+                var info = exerciseMap[id];
+                var name, category, color, isUnknown = false;
+
+                if (info) {
+                    name = info.name;
+                    category = info.category;
+                    color = categoryColorMap[category] || '#94a3b8';
+                } else {
+                    name = 'Neznámý cvik (' + id + ')';
+                    category = '';
+                    color = '#94a3b8';
+                    isUnknown = true;
+                }
+
+                var pct = Math.round((count / maxCount) * 100);
+                var textColor = isUnknown ? 'color:#94a3b8' : '';
+
+                html += '<div class="flex items-center gap-3">'
+                    + '<div class="flex-1 min-w-0">'
+                    + '<div class="flex items-baseline gap-2 mb-1">'
+                    + '<span class="text-sm font-semibold truncate" style="' + textColor + '">' + name + '</span>'
+                    + (category ? '<span class="text-[10px] font-bold uppercase tracking-wider shrink-0" style="color:' + color + '">' + category + '</span>' : '')
+                    + '</div>'
+                    + '<div class="progress-bar"><div class="progress-fill" style="width:' + pct + '%;background:' + color + '"></div></div>'
+                    + '</div>'
+                    + '<span class="text-sm font-bold tabular-nums shrink-0 w-8 text-right" style="color:' + color + '">' + count + '</span>'
+                    + '</div>';
+            }
+            container.innerHTML = html;
         }
-        container.innerHTML = html;
+
+        // ============ MONTH TAB (Calendar) ============
+        var viewedMonthOffset = 0;
+
+        function renderMonth() {
+            var container = document.getElementById('tab-month');
+            if (!container || container.classList.contains('hidden')) return;
+
+            var today = new Date();
+            var viewedDate = new Date(today.getFullYear(), today.getMonth() + viewedMonthOffset, 1);
+            var year = viewedDate.getFullYear();
+            var month = viewedDate.getMonth();
+
+            var monthNames = [
+                "Leden", "Únor", "Březen", "Duben", "Květen", "Červen",
+                "Červenec", "Srpen", "Září", "Říjen", "Listopad", "Prosinec"
+            ];
+
+            var activeDays = {};
+            var totalItems = 0;
+            var wKeys = Object.keys(weeks);
+            for (var wi = 0; wi < wKeys.length; wi++) {
+                var wk = weeks[wKeys[wi]];
+                if (!wk.done) continue;
+                for (var di = 0; di < wk.done.length; di++) {
+                    var parts = wk.done[di].split('|');
+                    if (parts.length < 2) continue;
+                    var ts = parseInt(parts[1]);
+                    var dd = new Date(ts);
+                    if (dd.getMonth() === month && dd.getFullYear() === year) {
+                        activeDays[dd.getDate()] = true;
+                        totalItems++;
+                    }
+                }
+            }
+
+            var activeDaysCount = Object.keys(activeDays).length;
+
+            var mhtml = '';
+            mhtml += '<div class="header-row" style="justify-content: center; gap: 12px; margin-bottom: 8px;">';
+            mhtml += '<button onclick="navMonth(-1)" class="nav-arrow">←</button>';
+            mhtml += '<div class="stats-h1" style="min-width: 180px; text-align: center;">' + monthNames[month] + ' ' + year + '</div>';
+            mhtml += '<button onclick="navMonth(1)" class="nav-arrow" style="' + (viewedMonthOffset >= 0 ? 'opacity:0.3;cursor:default;' : '') + '" ' + (viewedMonthOffset >= 0 ? 'disabled' : '') + '>→</button>';
+            mhtml += '</div>';
+
+            mhtml += '<div style="display:flex;gap:10px;margin-bottom:16px;">';
+            mhtml += '<div class="stat-card" style="flex:1;text-align:center;border-top:4px solid #3b82f6;">';
+            mhtml += '<div style="font-size:0.75rem;color:#64748b;margin-bottom:2px;">Aktivní dny</div>';
+            mhtml += '<div style="font-size:1.3rem;font-weight:800;color:#1e293b;">' + activeDaysCount + '</div>';
+            mhtml += '</div>';
+            mhtml += '<div class="stat-card" style="flex:1;text-align:center;border-top:4px solid #8b5cf6;">';
+            mhtml += '<div style="font-size:0.75rem;color:#64748b;margin-bottom:2px;">Celkem cviků</div>';
+            mhtml += '<div style="font-size:1.3rem;font-weight:800;color:#1e293b;">' + totalItems + '</div>';
+            mhtml += '</div>';
+            mhtml += '</div>';
+
+            mhtml += '<div class="stat-card" style="padding:16px;">';
+            var dayNames = ["Po", "Út", "St", "Čt", "Pá", "So", "Ne"];
+            mhtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);text-align:center;margin-bottom:10px;font-weight:600;color:#94a3b8;font-size:0.8rem;">';
+            for (var dn = 0; dn < dayNames.length; dn++) mhtml += '<div>' + dayNames[dn] + '</div>';
+            mhtml += '</div>';
+
+            mhtml += '<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:6px;">';
+            var firstDayDate = new Date(year, month, 1);
+            var firstDay = firstDayDate.getDay();
+            firstDay = (firstDay === 0) ? 6 : firstDay - 1;
+            var daysInMonth = new Date(year, month + 1, 0).getDate();
+
+            for (var e = 0; e < firstDay; e++) mhtml += '<div></div>';
+
+            for (var dd2 = 1; dd2 <= daysInMonth; dd2++) {
+                var isActive = activeDays[dd2];
+                var isToday = (dd2 === today.getDate() && month === today.getMonth() && year === today.getFullYear());
+                var cellClass = 'day-cell';
+                if (isActive) cellClass += ' active';
+                if (isToday) cellClass += ' today';
+                mhtml += '<div class="' + cellClass + '">' + dd2 + '</div>';
+            }
+            mhtml += '</div></div>';
+
+            container.innerHTML = mhtml;
+        }
+
+        window.navMonth = function(dir) {
+            viewedMonthOffset += dir;
+            renderMonth();
+        };
+
+        // ============ YEAR TAB (Charts) ============
+        var viewedYearOffset = 0;
+
+        function renderYear() {
+            var container = document.getElementById('tab-year');
+            if (!container || container.classList.contains('hidden')) return;
+
+            var today = new Date();
+            var year = today.getFullYear() + viewedYearOffset;
+            var isCurrentYear = viewedYearOffset === 0;
+            var currentMonth = today.getMonth();
+
+            var monthlyData = [];
+            for (var mi = 0; mi < 12; mi++) monthlyData.push({ count: 0, activeDays: {} });
+            var totalYear = 0;
+            var activeDaysYear = {};
+
+            var wKeys = Object.keys(weeks);
+            for (var wi = 0; wi < wKeys.length; wi++) {
+                var wk = weeks[wKeys[wi]];
+                if (!wk.done) continue;
+                for (var di = 0; di < wk.done.length; di++) {
+                    var parts = wk.done[di].split('|');
+                    if (parts.length < 2) continue;
+                    var ts = parseInt(parts[1]);
+                    var dd = new Date(ts);
+                    if (dd.getFullYear() === year) {
+                        var monthIdx = dd.getMonth();
+                        var dayKey = dd.getMonth() + '-' + dd.getDate();
+                        monthlyData[monthIdx].count++;
+                        monthlyData[monthIdx].activeDays[dd.getDate()] = true;
+                        activeDaysYear[dayKey] = true;
+                        totalYear++;
+                    }
+                }
+            }
+
+            var monthNames = ["Led", "Úno", "Bře", "Dub", "Kvě", "Čvn", "Čvc", "Srp", "Zář", "Říj", "Lis", "Pro"];
+            var activeDaysYearCount = Object.keys(activeDaysYear).length;
+            var avgPerMonth = Math.round(totalYear / (isCurrentYear ? currentMonth + 1 : 12));
+
+            var yhtml = '';
+            yhtml += '<div class="header-row" style="justify-content:center;gap:12px;margin-bottom:8px;">';
+            yhtml += '<button onclick="navYear(-1)" class="nav-arrow">←</button>';
+            yhtml += '<div class="stats-h1" style="min-width:100px;text-align:center;">' + year + '</div>';
+            yhtml += '<button onclick="navYear(1)" class="nav-arrow" style="' + (viewedYearOffset >= 0 ? 'opacity:0.3;cursor:default;' : '') + '" ' + (viewedYearOffset >= 0 ? 'disabled' : '') + '>→</button>';
+            yhtml += '</div>';
+
+            yhtml += '<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;">';
+            yhtml += '<div class="stat-card" style="text-align:center;border-top:4px solid #3b82f6;">';
+            yhtml += '<div style="font-size:1.5rem;font-weight:800;color:#3b82f6;">' + totalYear + '</div>';
+            yhtml += '<div style="font-size:0.7rem;color:#64748b;font-weight:600;">CELKEM</div>';
+            yhtml += '</div>';
+            yhtml += '<div class="stat-card" style="text-align:center;border-top:4px solid #22c55e;">';
+            yhtml += '<div style="font-size:1.5rem;font-weight:800;color:#22c55e;">' + activeDaysYearCount + '</div>';
+            yhtml += '<div style="font-size:0.7rem;color:#64748b;font-weight:600;">AKTIVNÍCH DNŮ</div>';
+            yhtml += '</div>';
+            yhtml += '<div class="stat-card" style="text-align:center;border-top:4px solid #8b5cf6;">';
+            yhtml += '<div style="font-size:1.5rem;font-weight:800;color:#8b5cf6;">' + avgPerMonth + '</div>';
+            yhtml += '<div style="font-size:0.7rem;color:#64748b;font-weight:600;">∅ / MĚSÍC</div>';
+            yhtml += '</div>';
+            yhtml += '</div>';
+
+            var maxCountY = 1;
+            for (var mc = 0; mc < monthlyData.length; mc++) {
+                if (monthlyData[mc].count > maxCountY) maxCountY = monthlyData[mc].count;
+            }
+
+            yhtml += '<div class="stat-card" style="padding:16px;">';
+            yhtml += '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">';
+
+            for (var idx = 0; idx < 12; idx++) {
+                var data = monthlyData[idx];
+                var isFuture = isCurrentYear && idx > currentMonth;
+                var intensity = data.count / maxCountY;
+                var activeDayCount = Object.keys(data.activeDays).length;
+
+                var bgColor = '#f8fafc';
+                var textColor = '#64748b';
+                var borderColor = '#e2e8f0';
+
+                if (!isFuture && data.count > 0) {
+                    if (intensity > 0.7) {
+                        bgColor = 'linear-gradient(135deg, #3b82f6, #8b5cf6)';
+                        textColor = 'white';
+                        borderColor = 'transparent';
+                    } else if (intensity > 0.4) {
+                        bgColor = '#dbeafe';
+                        textColor = '#1d4ed8';
+                        borderColor = '#93c5fd';
+                    } else {
+                        bgColor = '#f0fdf4';
+                        textColor = '#16a34a';
+                        borderColor = '#86efac';
+                    }
+                }
+
+                yhtml += '<div style="background:' + bgColor + ';border-radius:14px;padding:10px 6px;text-align:center;border:2px solid ' + borderColor + ';opacity:' + (isFuture ? 0.3 : 1) + ';">';
+                yhtml += '<div style="font-size:0.65rem;font-weight:700;color:' + textColor + ';opacity:0.8;margin-bottom:2px;">' + monthNames[idx] + '</div>';
+                yhtml += '<div style="font-size:1.2rem;font-weight:800;color:' + textColor + ';">' + data.count + '</div>';
+                yhtml += '<div style="font-size:0.6rem;color:' + textColor + ';opacity:0.7;margin-top:1px;">' + activeDayCount + ' dnů</div>';
+                yhtml += '</div>';
+            }
+
+            yhtml += '</div></div>';
+
+            container.innerHTML = yhtml;
+        }
+
+        window.navYear = function(dir) {
+            viewedYearOffset += dir;
+            renderYear();
+        };
+
+        // ============ TAB SWITCHING ============
+        window.showTab = function(tabName) {
+            var tabs = ['overview', 'month', 'year'];
+            var buttons = document.querySelectorAll('.stats-tab');
+
+            for (var ti = 0; ti < tabs.length; ti++) {
+                var el = document.getElementById('tab-' + tabs[ti]);
+                if (el) {
+                    if (tabs[ti] === tabName) {
+                        el.classList.remove('hidden');
+                    } else {
+                        el.classList.add('hidden');
+                    }
+                }
+                if (buttons[ti]) {
+                    if (tabs[ti] === tabName) {
+                        buttons[ti].classList.add('active');
+                    } else {
+                        buttons[ti].classList.remove('active');
+                    }
+                }
+            }
+
+            if (tabName === 'month') renderMonth();
+            if (tabName === 'year') renderYear();
+        };
     })();
     </script>
 </body>

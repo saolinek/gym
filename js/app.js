@@ -3,8 +3,6 @@ import { state, initializeState } from './data.js';
 import { initFirebase, loginGoogle, updateAuthUI, syncFromFirestore, firebaseInitialized } from './firebase.js';
 import { renderPlan, togGym, toggleEditMode, addCategory, deleteCategory, addItem, deleteItem, renameCategory, renameItem } from './plan.js';
 import { renderHistory, navigateWeek } from './history.js';
-import { renderCharts, navigateYear } from './charts.js';
-import { renderCalendar, navigateMonth } from './calendar.js';
 import { renderSettings, applyTheme } from './settings.js';
 import { onAuthStateChanged, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
@@ -21,15 +19,13 @@ window.loginGoogle = loginGoogle;
 
 // Navigation bindings
 window.navigateWeek = navigateWeek;
-window.navigateMonth = navigateMonth;
-window.navigateYear = navigateYear;
 
 // === 2. MAIN RENDER CONTROLLER ===
 window.renderApp = function () {
     if (!state.appReady) return;
 
     // View Switching
-    ['day', 'week', 'month', 'year', 'settings'].forEach(t => {
+    ['day', 'week', 'settings'].forEach(t => {
         const v = document.getElementById('view-' + t);
         const b = document.getElementById('nav-btn-' + t);
         if (v) v.style.display = (t === state.activeView) ? 'block' : 'none';
@@ -42,8 +38,6 @@ window.renderApp = function () {
     // Content Rendering
     if (state.activeView === 'day') renderPlan();
     if (state.activeView === 'week') renderHistory();
-    if (state.activeView === 'year') renderCharts();
-    if (state.activeView === 'month') renderCalendar();
     if (state.activeView === 'settings') renderSettings();
 };
 
