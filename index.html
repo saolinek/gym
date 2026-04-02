@@ -630,6 +630,76 @@
             transform: translateX(22px);
         }
 
+        /* === SEGMENTED CONTROL (View Mode) === */
+        .segmented-control {
+            display: flex;
+            background: #f1f5f9;
+            border-radius: 10px;
+            padding: 4px;
+            gap: 4px;
+        }
+
+        .seg-btn {
+            flex: 1;
+            padding: 7px 14px;
+            border: none;
+            background: transparent;
+            border-radius: 7px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #64748b;
+            cursor: pointer;
+            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            white-space: nowrap;
+        }
+
+        .seg-btn.active {
+            background: white;
+            color: #1e293b;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+        }
+
+        /* === CARDS VIEW LAYOUT === */
+        #gym-list.view-cards {
+            display: flex;
+            overflow-x: scroll;
+            scroll-snap-type: x mandatory;
+            scrollbar-width: none;
+            -ms-overflow-style: none;
+            padding-bottom: 4px;
+        }
+
+        #gym-list.view-cards::-webkit-scrollbar {
+            display: none;
+        }
+
+        #gym-list.view-cards .gym-cat {
+            flex: 0 0 100%;
+            scroll-snap-align: start;
+            margin-bottom: 0;
+        }
+
+        /* === DOTS INDICATOR === */
+        #dots-indicator {
+            display: none;
+            justify-content: center;
+            gap: 7px;
+            padding: 10px 0 2px;
+        }
+
+        #dots-indicator .dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #cbd5e1;
+            transition: background 0.2s, transform 0.2s;
+        }
+
+        #dots-indicator .dot.active {
+            background: #3b82f6;
+            transform: scale(1.4);
+        }
+
         /* Year View Styles */
         .prog-track {
             background: #f1f5f9;
@@ -847,6 +917,27 @@
             color: #94a3b8;
         }
 
+        body.dark-mode .segmented-control {
+            background: #0f172a;
+        }
+
+        body.dark-mode .seg-btn {
+            color: #64748b;
+        }
+
+        body.dark-mode .seg-btn.active {
+            background: #334155;
+            color: #f1f5f9;
+        }
+
+        body.dark-mode #dots-indicator .dot {
+            background: #475569;
+        }
+
+        body.dark-mode #dots-indicator .dot.active {
+            background: #60a5fa;
+        }
+
         body.dark-mode .theme-btn.active {
             background: #1e293b;
             border-color: #3b82f6;
@@ -976,6 +1067,7 @@
             </div>
 
             <div id="gym-list"></div>
+            <div id="dots-indicator"></div>
             <div id="edit-controls-main" style="display:none; text-align:center; margin-top:16px;">
                 <div class="add-btn" onclick="addCategory()"
                     style="background: white; border: 2px dashed #94a3b8; color: #1e293b;">+ Přidat novou kategorii

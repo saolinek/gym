@@ -67,7 +67,8 @@ export const state = {
     settings: {
         theme: 'material', // 'material' or 'liquid'
         darkMode: false,
-        haptics: true
+        haptics: true,
+        viewMode: 'list' // 'list' or 'cards'
     },
 
     // UI State

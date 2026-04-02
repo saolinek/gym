@@ -15,8 +15,20 @@ export function renderSettings() {
     if (!container) return;
 
     const currentTheme = state.settings.theme || 'material';
+    const viewMode = state.settings.viewMode || 'list';
 
     container.innerHTML = `
+        <div class="settings-section">
+            <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">ZOBRAZENÍ</h3>
+            <div class="settings-item">
+                <span style="font-weight: 500;">Stránka Dnes</span>
+                <div class="segmented-control">
+                    <button class="seg-btn ${viewMode === 'list' ? 'active' : ''}" onclick="setViewMode('list')">Seznam</button>
+                    <button class="seg-btn ${viewMode === 'cards' ? 'active' : ''}" onclick="setViewMode('cards')">Karty</button>
+                </div>
+            </div>
+        </div>
+
         <div class="settings-section">
             <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">VZHLED A CHOVÁNÍ</h3>
 
@@ -72,6 +84,12 @@ export function renderSettings() {
 
 // Global functions for onclick
 
+
+window.setViewMode = function (mode) {
+    state.settings.viewMode = mode;
+    saveLocalSettings();
+    renderSettings();
+};
 
 window.toggleHaptics = function () {
     state.settings.haptics = !state.settings.haptics;

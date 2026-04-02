@@ -19,6 +19,9 @@ let domCache = {
     text: null
 };
 
+// === CARDS VIEW STATE ===
+let cardsScrollHandler = null;
+
 function getDomElements() {
     if (!domCache.list) domCache.list = document.getElementById("gym-list");
     if (!domCache.bar) domCache.bar = document.getElementById('gym-bar');
@@ -88,6 +91,43 @@ function triggerHaptic() {
 }
 
 const GRIP_SVG = `<svg width="14" height="18" viewBox="0 0 14 18" fill="currentColor"><circle cx="4" cy="3" r="1.5"/><circle cx="10" cy="3" r="1.5"/><circle cx="4" cy="9" r="1.5"/><circle cx="10" cy="9" r="1.5"/><circle cx="4" cy="15" r="1.5"/><circle cx="10" cy="15" r="1.5"/></svg>`;
+
+function renderDots(count) {
+    const container = document.getElementById('dots-indicator');
+    if (!container) return;
+    let html = '';
+    for (let i = 0; i < count; i++) {
+        html += `<span class="dot${i === 0 ? ' active' : ''}"></span>`;
+    }
+    container.innerHTML = html;
+    container.style.display = count > 0 ? 'flex' : 'none';
+}
+
+function hideDots() {
+    const container = document.getElementById('dots-indicator');
+    if (!container) return;
+    container.style.display = 'none';
+    container.innerHTML = '';
+}
+
+function updateActiveDot(idx) {
+    const container = document.getElementById('dots-indicator');
+    if (!container) return;
+    container.querySelectorAll('.dot').forEach((dot, i) => {
+        dot.classList.toggle('active', i === idx);
+    });
+}
+
+function setupCardsScroll(list) {
+    if (cardsScrollHandler) {
+        list.removeEventListener('scroll', cardsScrollHandler);
+    }
+    cardsScrollHandler = () => {
+        const idx = Math.round(list.scrollLeft / list.offsetWidth);
+        updateActiveDot(idx);
+    };
+    list.addEventListener('scroll', cardsScrollHandler, { passive: true });
+}
 
 // === PURE RENDER FUNCTION ===
 export function renderPlan() {
@@ -178,6 +218,21 @@ export function renderPlan() {
         html += `</div>`;
     });
     list.innerHTML = html;
+
+    // Apply view mode
+    const viewMode = state.settings.viewMode || 'list';
+    if (viewMode === 'cards') {
+        list.classList.add('view-cards');
+        renderDots(state.plan.length);
+        setupCardsScroll(list);
+    } else {
+        list.classList.remove('view-cards');
+        if (cardsScrollHandler) {
+            list.removeEventListener('scroll', cardsScrollHandler);
+            cardsScrollHandler = null;
+        }
+        hideDots();
+    }
 
     if (state.isEditMode) initDragAndDrop();
 
