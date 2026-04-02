@@ -223,12 +223,10 @@ export function renderPlan() {
     const viewMode = state.settings.viewMode || 'list';
     if (viewMode === 'cards') {
         list.classList.add('view-cards');
-        document.body.classList.add('cards-mode-active');
         renderDots(state.plan.length);
         setupCardsScroll(list);
     } else {
         list.classList.remove('view-cards');
-        document.body.classList.remove('cards-mode-active');
         if (cardsScrollHandler) {
             list.removeEventListener('scroll', cardsScrollHandler);
             cardsScrollHandler = null;

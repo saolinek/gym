@@ -50,7 +50,6 @@ window.renderApp = function () {
 // === 3. NAVIGATION ===
 window.switchTab = function (tabName) {
     if (!state.appReady) return;
-    if (tabName !== 'day') document.body.classList.remove('cards-mode-active');
     state.activeView = tabName;
     window.renderApp();
 };

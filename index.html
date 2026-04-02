@@ -665,9 +665,11 @@
             display: flex;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
+            scroll-behavior: smooth;
             overscroll-behavior-x: none;
             scrollbar-width: none;
             -ms-overflow-style: none;
+            gap: 12px;
         }
 
         #gym-list.view-cards::-webkit-scrollbar {
@@ -675,45 +677,10 @@
         }
 
         #gym-list.view-cards .gym-cat {
-            flex: 0 0 100%;
+            flex: 0 0 calc(100% - 12px);
             scroll-snap-align: start;
+            scroll-snap-stop: always;
             margin-bottom: 0;
-        }
-
-        /* === CARDS MODE: Lock vertical page scroll === */
-        body.cards-mode-active {
-            overflow: hidden;
-            height: 100dvh;
-        }
-
-        body.cards-mode-active .screen-content {
-            height: 100dvh;
-            overflow: hidden;
-            padding-bottom: 0;
-            display: flex;
-            flex-direction: column;
-        }
-
-        body.cards-mode-active #view-day {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            padding-bottom: 0;
-        }
-
-        body.cards-mode-active #gym-list.view-cards {
-            flex: 1;
-            min-height: 0;
-        }
-
-        body.cards-mode-active #gym-list.view-cards .gym-cat {
-            overflow-y: auto;
-            -webkit-overflow-scrolling: touch;
-        }
-
-        body.cards-mode-active #dots-indicator {
-            flex-shrink: 0;
         }
 
         /* === DOTS INDICATOR === */
