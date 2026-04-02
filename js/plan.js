@@ -144,13 +144,14 @@ export function renderPlan() {
 
     let html = "";
     let doneCount = 0;
+    const viewMode = state.settings.viewMode || 'list';
 
     state.plan.forEach((c, catIdx) => {
         const categoryName = getCategoryName(c);
         html += `<div class="gym-cat">`;
 
         html += `<div class="cat-header">
-                    ${state.isEditMode ? `<div class="drag-handle" data-type="cat" data-catidx="${catIdx}">${GRIP_SVG}</div>` : ''}
+                    ${state.isEditMode && viewMode !== 'cards' ? `<div class="drag-handle" data-type="cat" data-catidx="${catIdx}">${GRIP_SVG}</div>` : ''}
                     <h2 style="font-weight:800; margin:0; font-size:1.25rem; flex-grow:1;" ${state.isEditMode ? `onclick="renameCategory(${catIdx})"` : ''}>${categoryName}</h2>
                     ${state.isEditMode ? `
                         <div class="edit-controls">
@@ -220,7 +221,6 @@ export function renderPlan() {
     list.innerHTML = html;
 
     // Apply view mode
-    const viewMode = state.settings.viewMode || 'list';
     if (viewMode === 'cards') {
         list.classList.add('view-cards');
         renderDots(state.plan.length);
