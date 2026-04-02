@@ -633,30 +633,31 @@
         /* === SEGMENTED CONTROL (View Mode) === */
         .segmented-control {
             display: flex;
-            background: #f1f5f9;
+            background: #e2e8f0;
             border-radius: 10px;
-            padding: 4px;
-            gap: 4px;
+            padding: 3px;
+            gap: 3px;
         }
 
         .seg-btn {
             flex: 1;
-            padding: 7px 14px;
+            padding: 7px 16px;
             border: none;
             background: transparent;
-            border-radius: 7px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: #64748b;
+            border-radius: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #94a3b8;
             cursor: pointer;
-            transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+            transition: background 0.18s, color 0.18s, box-shadow 0.18s;
             white-space: nowrap;
+            letter-spacing: 0.01em;
         }
 
         .seg-btn.active {
             background: white;
             color: #1e293b;
-            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.14);
         }
 
         /* === CARDS VIEW LAYOUT === */
@@ -664,9 +665,9 @@
             display: flex;
             overflow-x: scroll;
             scroll-snap-type: x mandatory;
+            overscroll-behavior-x: none;
             scrollbar-width: none;
             -ms-overflow-style: none;
-            padding-bottom: 4px;
         }
 
         #gym-list.view-cards::-webkit-scrollbar {
@@ -679,12 +680,49 @@
             margin-bottom: 0;
         }
 
+        /* === CARDS MODE: Lock vertical page scroll === */
+        body.cards-mode-active {
+            overflow: hidden;
+            height: 100dvh;
+        }
+
+        body.cards-mode-active .screen-content {
+            height: 100dvh;
+            overflow: hidden;
+            padding-bottom: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        body.cards-mode-active #view-day {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            padding-bottom: 0;
+        }
+
+        body.cards-mode-active #gym-list.view-cards {
+            flex: 1;
+            min-height: 0;
+        }
+
+        body.cards-mode-active #gym-list.view-cards .gym-cat {
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        body.cards-mode-active #dots-indicator {
+            flex-shrink: 0;
+        }
+
         /* === DOTS INDICATOR === */
         #dots-indicator {
             display: none;
             justify-content: center;
-            gap: 7px;
-            padding: 10px 0 2px;
+            align-items: center;
+            gap: 6px;
+            padding: 10px 0 4px;
         }
 
         #dots-indicator .dot {
@@ -692,12 +730,13 @@
             height: 7px;
             border-radius: 50%;
             background: #cbd5e1;
-            transition: background 0.2s, transform 0.2s;
+            transition: width 0.25s ease, border-radius 0.25s ease, background 0.2s;
         }
 
         #dots-indicator .dot.active {
+            width: 20px;
+            border-radius: 3.5px;
             background: #3b82f6;
-            transform: scale(1.4);
         }
 
         /* Year View Styles */
@@ -922,16 +961,17 @@
         }
 
         body.dark-mode .seg-btn {
-            color: #64748b;
+            color: #475569;
         }
 
         body.dark-mode .seg-btn.active {
-            background: #334155;
+            background: #1e293b;
             color: #f1f5f9;
+            box-shadow: 0 1px 5px rgba(0, 0, 0, 0.4);
         }
 
         body.dark-mode #dots-indicator .dot {
-            background: #475569;
+            background: #334155;
         }
 
         body.dark-mode #dots-indicator .dot.active {
