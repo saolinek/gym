@@ -19,7 +19,7 @@ export function renderSettings() {
 
     container.innerHTML = `
         <div class="settings-section">
-            <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">ZOBRAZENÍ</h3>
+            <h3 style="margin-bottom: 8px; color: #64748b; font-size: 0.85rem;">ZOBRAZENÍ</h3>
             <div class="settings-item">
                 <span style="font-weight: 500;">Stránka Dnes</span>
                 <div class="segmented-control">
@@ -30,7 +30,7 @@ export function renderSettings() {
         </div>
 
         <div class="settings-section">
-            <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">VZHLED A CHOVÁNÍ</h3>
+            <h3 style="margin-bottom: 8px; color: #64748b; font-size: 0.85rem;">VZHLED A CHOVÁNÍ</h3>
 
 
 
@@ -52,17 +52,17 @@ export function renderSettings() {
         </div>
 
         <div class="settings-section">
-            <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">HISTORIE</h3>
+            <h3 style="margin-bottom: 8px; color: #64748b; font-size: 0.85rem;">HISTORIE</h3>
             <div class="settings-item" onclick="window.location.href='history-edit.html'" style="cursor: pointer; justify-content: center;">
                 <span style="font-weight: 600; color: #3b82f6;">📝 Upravit historii</span>
             </div>
             <div class="settings-item" onclick="window.location.href='stats.html'" style="cursor: pointer; justify-content: center;">
-                <span style="font-weight: 600; color: #3b82f6;">📊 Statistiky</span>
+                <span style="font-weight: 600; color: #3b82f6;">📊 Statistiky, Měsíc & Rok</span>
             </div>
         </div>
 
         <div class="settings-section">
-            <h3 style="margin-bottom: 12px; color: #64748b; font-size: 0.9rem;">ÚČET A DATA</h3>
+            <h3 style="margin-bottom: 8px; color: #64748b; font-size: 0.85rem;">ÚČET A DATA</h3>
 
             <div class="settings-item" style="flex-direction: column; align-items: stretch; gap: 12px;">
                 <div id="user-status" class="user-status" style="text-align: left; font-weight: 500;">Načítání...</div>
