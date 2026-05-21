@@ -127,7 +127,8 @@ export function createCategory(name) {
 export function createExercise(name) {
     return {
         id: createId('ex'),
-        name: String(name || '').trim()
+        name: String(name || '').trim(),
+        createdAt: Date.now()
     };
 }
 
@@ -176,7 +177,11 @@ function normalizePlanSchema(rawPlan) {
                 legacyToExerciseId.set(legacyKey, itemId);
             }
 
-            return { id: itemId, name: itemName };
+            const item = { id: itemId, name: itemName };
+            if (rawItem && typeof rawItem === 'object' && typeof rawItem.createdAt === 'number') {
+                item.createdAt = rawItem.createdAt;
+            }
+            return item;
         });
 
         normalizedPlan.push({ id: categoryId, name: categoryName, items });

@@ -40,28 +40,28 @@ function getPrevWeekDoneList(currentWeekId) {
         return prevWeekCache.doneList;
     }
 
-    // Find the most recent previous week by scanning actual stored keys.
-    // This avoids DST timestamp mismatch when computing previous Monday.
     const currentTs = parseInt(currentWeekId);
-    const fourWeeksMs = 4 * 7 * 24 * 60 * 60 * 1000;
-    let bestKey = null;
-    let bestTs = 0;
+    const currentMonday = new Date(currentTs);
 
-    for (const weekKey of Object.keys(state.weeks)) {
-        const ts = parseInt(weekKey);
-        if (ts < currentTs && ts > bestTs && (currentTs - ts) < fourWeeksMs) {
-            const weekData = state.weeks[weekKey];
-            if (weekData && weekData.done && weekData.done.length > 0) {
-                bestTs = ts;
-                bestKey = weekKey;
-            }
-        }
+    // Check if there is any history at all before the current week
+    const hasAnyHistory = Object.keys(state.weeks).some(weekKey => parseInt(weekKey) < currentTs);
+
+    if (!hasAnyHistory) {
+        prevWeekCache.weekId = currentWeekId;
+        prevWeekCache.doneList = null;
+        return null;
     }
 
+    // Safely compute the exact previous Monday (DST-safe)
+    const prevMonday = new Date(currentMonday);
+    prevMonday.setDate(currentMonday.getDate() - 7);
+    const prevWeekKey = prevMonday.getTime().toString();
+    const prevWeekData = state.weeks[prevWeekKey];
+
     prevWeekCache.weekId = currentWeekId;
-    prevWeekCache.doneList = bestKey
-        ? state.weeks[bestKey].done.map(entry => entry.split('|')[0])
-        : null;
+    prevWeekCache.doneList = (prevWeekData && prevWeekData.done)
+        ? prevWeekData.done.map(entry => entry.split('|')[0])
+        : [];
 
     return prevWeekCache.doneList;
 }
@@ -188,7 +188,8 @@ export function renderPlan() {
             // isDone already checks if the task is done this week (via isInCurrentWeek)
             let missedLabel = "";
             const isDoneThisWeek = fullDoneList.some(entry => entry.split('|')[0] === exerciseId);
-            if (prevDoneList && !prevDoneList.includes(exerciseId) && !isDoneThisWeek) {
+            const isNew = i.createdAt && i.createdAt >= parseInt(state.currentWeekId);
+            if (prevDoneList && !prevDoneList.includes(exerciseId) && !isDoneThisWeek && !isNew) {
                 missedLabel = `<span class="missed-label" style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`;
             }
 
@@ -289,7 +290,16 @@ export function togGym(id, el) {
 
     // Handle "Minule vynecháno" label visibility
     const prevDoneList = getPrevWeekDoneList(state.currentWeekId);
-    const isMissedLastWeek = prevDoneList && !prevDoneList.includes(id);
+    let exercise = null;
+    for (const cat of state.plan) {
+        const found = (cat.items || []).find(item => item.id === id);
+        if (found) {
+            exercise = found;
+            break;
+        }
+    }
+    const isNew = exercise && exercise.createdAt && exercise.createdAt >= parseInt(state.currentWeekId);
+    const isMissedLastWeek = prevDoneList && !prevDoneList.includes(id) && !isNew;
 
     if (isMissedLastWeek) {
         // Check if done ANY time this week (including the change we just made)
@@ -306,7 +316,7 @@ export function togGym(id, el) {
                 labelSpan.style.display = 'inline';
             } else {
                 // If it was hidden/removed and needs to be re-added
-                const textSpan = el.querySelector('span[style*="font-weight:500"]');
+                const textSpan = el.querySelector('span');
                 if (textSpan) {
                     textSpan.insertAdjacentHTML('beforeend', `<span class="missed-label" style="font-size: 0.75rem; color: #f97316; font-weight: 600; margin-left: 8px;">(Minule vynecháno)</span>`);
                 }
